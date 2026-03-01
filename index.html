@@ -14,60 +14,109 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             background: var(--dark-bg);
             color: var(--text);
             line-height: 1.6;
+            overflow-x: hidden;
         }
 
-        /* --- HEADER --- */
+        /* --- HEADER: FIXED EMPTY SPACE --- */
         header {
-            height: 80vh;
+            min-height: 70vh; /* Controlled height to prevent large top gaps */
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-end; /* Pushes text to the bottom near the red bar */
             align-items: center;
             text-align: center;
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+            padding-bottom: 60px; /* Space above the red bar */
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.85)), 
                         url('https://files.websitebuilder.prositehosting.co.uk/3d/97/3d97fb52-db7a-48d7-8fbf-0e3c419a6b29.jpg');
             background-size: cover;
             background-position: center;
             border-bottom: 8px solid var(--racing-red);
         }
 
-        h1 { font-size: clamp(3rem, 12vw, 7rem); font-style: italic; text-transform: uppercase; line-height: 0.9; }
-        .tagline { font-size: 1.2rem; letter-spacing: 5px; color: var(--text-dim); margin: 20px 0; }
+        h1 { 
+            font-size: clamp(3rem, 12vw, 7rem); 
+            font-style: italic; 
+            text-transform: uppercase; 
+            line-height: 0.85; /* Tighter vertical stacking */
+            letter-spacing: -2px;
+        }
 
-        /* --- GRID SECTION --- */
-        .container { max-width: 1200px; margin: -100px auto 50px; padding: 0 20px; }
+        .tagline { 
+            font-size: clamp(1rem, 3vw, 1.2rem); 
+            letter-spacing: 5px; 
+            color: var(--text); 
+            margin: 15px 0 25px; 
+            text-transform: uppercase;
+        }
+
+        .warning-skew {
+            background: var(--racing-red); 
+            color: black; 
+            padding: 8px 20px; 
+            font-weight: 900; 
+            transform: skew(-12deg);
+            display: inline-block;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.3);
+        }
+
+        /* --- GRID SECTION: CLEAN SPACING --- */
+        .container { 
+            max-width: 1200px; 
+            margin: 60px auto; /* Removed negative margin to prevent overlap */
+            padding: 0 20px; 
+        }
         
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            gap: 25px;
         }
 
         .card {
             background: var(--card-bg);
             border: 1px solid #222;
-            transition: 0.3s;
-            position: relative;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             overflow: hidden;
         }
 
-        .card:hover { border-color: var(--racing-red); transform: translateY(-10px); }
+        .card:hover { 
+            border-color: var(--racing-red); 
+            transform: translateY(-8px); 
+        }
         
-        .card img { width: 100%; height: 250px; object-fit: cover; display: block; }
+        .card img { 
+            width: 100%; 
+            aspect-ratio: 16/10; /* Keeps images uniform */
+            object-fit: cover; 
+            display: block; 
+            filter: grayscale(20%);
+            transition: 0.4s;
+        }
+
+        .card:hover img { filter: grayscale(0%); }
         
-        .card-body { padding: 20px; }
-        .card-body h3 { color: var(--racing-red); text-transform: uppercase; margin-bottom: 10px; }
+        .card-body { padding: 25px; }
+        .card-body h3 { color: var(--racing-red); text-transform: uppercase; margin-bottom: 8px; font-style: italic; }
+        .card-body p { color: var(--text-dim); font-size: 0.95rem; }
 
         /* --- CONTACT FORM --- */
-        .contact-section { background: #111; padding: 100px 20px; text-align: center; }
+        .contact-section { 
+            background: #0d0d0d; 
+            padding: 80px 20px; 
+            text-align: center;
+            border-top: 1px solid #222;
+        }
         
+        .contact-section h2 { color: var(--racing-red); letter-spacing: 3px; margin-bottom: 10px; }
+
         form {
-            max-width: 600px;
+            max-width: 550px;
             margin: 40px auto 0;
             display: grid;
             gap: 15px;
@@ -77,28 +126,40 @@
         input, textarea {
             width: 100%;
             padding: 15px;
-            background: #222;
+            background: #1a1a1a;
             border: 1px solid #333;
             color: white;
             font-family: inherit;
+            transition: 0.3s;
         }
 
-        input:focus, textarea:focus { outline: 1px solid var(--racing-red); }
+        input:focus, textarea:focus { 
+            outline: none; 
+            border-color: var(--racing-red);
+            background: #222; 
+        }
 
         button {
             background: var(--racing-red);
             color: white;
-            padding: 15px;
+            padding: 18px;
             border: none;
-            font-weight: bold;
+            font-weight: 900;
             text-transform: uppercase;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.3s;
+            letter-spacing: 1px;
         }
 
-        button:hover { background: #c0392b; letter-spacing: 2px; }
+        button:hover { background: #ff4d3a; letter-spacing: 3px; }
 
-        footer { padding: 50px; text-align: center; border-top: 1px solid #222; font-size: 0.8rem; }
+        footer { padding: 60px 20px; text-align: center; border-top: 1px solid #222; color: var(--text-dim); font-size: 0.8rem; letter-spacing: 2px; }
+
+        /* Responsive Fixes */
+        @media (max-width: 768px) {
+            header { min-height: 60vh; }
+            h1 { line-height: 0.9; }
+        }
     </style>
 </head>
 <body>
@@ -106,30 +167,30 @@
     <header>
         <h1>TONY<br>GRIFFITHS</h1>
         <p class="tagline">PREMIUM MOTORSPORT VISION</p>
-        <div style="background: var(--racing-red); color: black; padding: 5px 15px; font-weight: 900; transform: skew(-10deg);">NO ROAD CARS</div>
+        <div class="warning-skew">NO ROAD CARS</div>
     </header>
 
     <div class="container">
         <div class="grid">
             <div class="card">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/aa/42/aa420554-9368-4499-92ae-c9f110be2717.jpg">
+                <img src="https://files.websitebuilder.prositehosting.co.uk/aa/42/aa420554-9368-4499-92ae-c9f110be2717.jpg" alt="Rally Car Paint">
                 <div class="card-body">
                     <h3>Rally Prep</h3>
-                    <p>High-visibility stage liveries.</p>
+                    <p>High-visibility stage liveries and impact-resistant coatings.</p>
                 </div>
             </div>
             <div class="card">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/14/d4/14d49c42-a4c5-473e-a9f6-21335a8b0e40.jpg" alt="Track Car">
+                <img src="https://files.websitebuilder.prositehosting.co.uk/14/d4/14d49c42-a4c5-473e-a9f6-21335a8b0e40.jpg" alt="Track Car Livery">
                 <div class="card-body">
                     <h3>Circuit Livery</h3>
                     <p>Sponsor-ready graphics and lightweight aerodynamic finishing.</p>
                 </div>
             </div>
             <div class="card">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/9c/0d/9c0d43a7-690e-4364-b305-ce47bc368f47.jpg">
+                <img src="https://files.websitebuilder.prositehosting.co.uk/9c/0d/9c0d43a7-690e-4364-b305-ce47bc368f47.jpg" alt="Composite Repair">
                 <div class="card-body">
                     <h3>Component Repair</h3>
-                    <p>Specialist panel restoration.</p>
+                    <p>Specialist panel restoration and composite refinishing.</p>
                 </div>
             </div>
         </div>
