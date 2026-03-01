@@ -3,234 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tony Griffiths | Motorsport Refinishing</title>
+    <title>Stage Log | Rally Notes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
-            --racing-red: #e74c3c;
-            --dark-bg: #0b0b0b;
-            --card-bg: #151515;
-            --text-main: #ffffff;
-            --text-dim: #95a5a6;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            --bg-dark: #0f0f0f;
+            --card-bg: #1a1a1a;
+            --accent: #ffdb00; 
+            --text-white: #ffffff;
+            --text-muted: #888;
+            --border: #2a2a2a;
         }
 
         body {
-            font-family: 'Arial Black', 'Arial', sans-serif;
-            background: var(--dark-bg);
-            color: var(--text-main);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* ==================== HEADER (VISION STYLE) ==================== */
-        header {
-            min-height: 75vh; /* Controlled height to reduce empty top space */
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end; /* Pushes content to the bottom */
-            align-items: center;
-            text-align: center;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            margin: 0;
             padding-bottom: 50px;
-            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.9)), 
-                        url('https://files.websitebuilder.prositehosting.co.uk/3d/97/3d97fb52-db7a-48d7-8fbf-0e3c419a6b29.jpg'); /* Replace with your red car image */
-            background-size: cover;
-            background-position: center;
-            border-bottom: 8px solid var(--racing-red);
         }
 
-        h1 {
-            font-size: clamp(2.8rem, 12vw, 7rem);
-            font-style: italic;
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 5%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo { font-size: 1.8rem; font-weight: 900; letter-spacing: -1px; font-style: italic; }
+        .logo span { color: var(--accent); }
+
+        .nav-buttons { display: flex; gap: 10px; }
+
+        .btn {
+            border: none;
+            padding: 12px 20px;
+            font-weight: 800;
             text-transform: uppercase;
-            line-height: 0.85; /* Tightly stacked like your screenshot */
-            margin-bottom: 10px;
-            letter-spacing: -2px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .tagline {
-            font-size: clamp(0.8rem, 3vw, 1.2rem);
-            letter-spacing: 6px;
-            color: var(--text-main);
-            text-transform: uppercase;
-            margin-bottom: 25px;
-            font-weight: 300;
-        }
+        .btn-add { background: var(--accent); color: #000; }
+        .btn-pdf { background: #333; color: #fff; border: 1px solid #444; }
+        .btn:active { transform: scale(0.95); }
 
-        .no-road-cars {
-            background: var(--racing-red);
-            color: #000;
-            padding: 10px 25px;
-            font-weight: 900;
-            text-transform: uppercase;
-            transform: skew(-12deg);
-            display: inline-block;
-            box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
-        }
-
-        /* ==================== GRID SECTION ==================== */
-        .main-container {
-            max-width: 1200px;
-            margin: 60px auto;
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
             padding: 0 20px;
         }
 
-        .section-title {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 40px;
-            letter-spacing: 4px;
-            color: var(--racing-red);
-            text-transform: uppercase;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 25px;
-        }
-
-        .card {
+        .log-entry {
             background: var(--card-bg);
-            border: 1px solid #222;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            position: relative;
         }
 
-        .card:hover {
-            transform: translateY(-10px);
-            border-color: var(--racing-red);
-        }
-
-        .card img {
-            width: 100%;
-            aspect-ratio: 16/9; /* Ensures uniform image sizes */
-            object-fit: cover;
-            display: block;
-            filter: grayscale(20%);
-            transition: 0.5s;
-        }
-
-        .card:hover img {
-            filter: grayscale(0%);
-            transform: scale(1.05);
-        }
-
-        .card-content {
-            padding: 20px;
-        }
-
-        .card-content h3 {
-            color: var(--racing-red);
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-
-        /* ==================== CONTACT FORM ==================== */
-        .contact-wrap {
-            background: #111;
-            padding: 80px 20px;
-            text-align: center;
-        }
-
-        form {
-            max-width: 500px;
-            margin: 30px auto 0;
+        .log-header {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
         }
 
-        input, textarea {
-            padding: 15px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            color: white;
-            font-family: inherit;
-        }
+        .event-name { font-size: 1.3rem; font-weight: 700; color: var(--accent); outline: none; }
+        .date { color: var(--text-muted); font-size: 0.85rem; font-family: monospace; }
+        .log-body p { font-size: 1.1rem; line-height: 1.6; color: #ddd; outline: none; min-height: 50px; }
 
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: var(--racing-red);
-        }
-
-        .submit-btn {
-            background: var(--racing-red);
-            color: white;
-            border: none;
-            padding: 15px;
-            font-weight: 900;
+        .tags { display: flex; gap: 8px; margin-top: 15px; }
+        .tag {
+            background: #333;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            border-radius: 50px;
             text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: -45px;
+            background: none;
+            border: none;
+            color: #555;
             cursor: pointer;
-            transition: 0.3s;
+            font-size: 1.2rem;
         }
 
-        .submit-btn:hover {
-            letter-spacing: 2px;
-            background: #c0392b;
-        }
-
-        footer {
-            padding: 40px;
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            border-top: 1px solid #222;
+        /* PDF Specific Styling - Removes delete buttons in PDF */
+        @media print {
+            .delete-btn { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>TONY<br>GRIFFITHS</h1>
-        <p class="tagline">PREMIUM MOTORSPORT VISION</p>
-        <div class="no-road-cars">NO ROAD CARS</div>
-    </header>
-
-    <div class="main-container">
-        <h2 class="section-title">The Gallery</h2>
-        <div class="grid">
-            <div class="card">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/aa/42/aa420554-9368-4499-92ae-c9f110be2717.jpg" alt="Rally Car">
-                <div class="card-content">
-                    <h3>Stage Prep</h3>
-                    <p>Refinishing for gravel and tarmac rallying.</p>
-                </div>
-            </div>
-            <div class="card">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/14/d4/14d49c42-a4c5-473e-a9f6-21335a8b0e40.jpg" alt="Track Car">
-                <div class="card-content">
-                    <h3>Circuit Livery</h3>
-                    <p>Custom team graphics and aerodynamic paintwork.</p>
-                </div>
-            </div>
-            <div class="card">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/9c/0d/9c0d43a7-690e-4364-b305-ce47bc368f47.jpg" alt="Composite Repair">
-                <div class="card-content">
-                    <h3>Carbon & Aero</h3>
-                    <p>Specialist repairs and lightweight finishing.</p>
-                </div>
-            </div>
+    <nav class="navbar">
+        <div class="logo">STAGE <span>LOG</span></div>
+        <div class="nav-buttons">
+            <button class="btn btn-pdf" onclick="exportToPDF()">Download PDF</button>
+            <button class="btn btn-add" onclick="addNewStage()">+ New Stage</button>
         </div>
-    </div>
+    </nav>
 
-    <section class="contact-wrap">
-        <h2 class="section-title">Get a Quote</h2>
-        <form action="#">
-            <input type="text" placeholder="Driver / Team Name" required>
-            <input type="email" placeholder="Email" required>
-            <textarea rows="5" placeholder="Project Details" required></textarea>
-            <button type="submit" class="submit-btn">Send Transmission</button>
-        </form>
-    </section>
+    <div class="container" id="log-container">
+        </div>
 
-    <footer>
-        <p>&copy; 2026 TONY GRIFFITHS | MOTORSPORT SPECIFICATION ONLY</p>
-    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadLogs);
 
+        function addNewStage(data = null) {
+            const container = document.getElementById('log-container');
+            const now = new Date();
+            const dateStr = data ? data.date : now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <button class="delete-btn" onclick="removeStage(this)">×</button>
+                <div class="log-header">
+                    <span class="event-name" contenteditable="true" oninput="saveLogs()">${data ? data.title : 'New Event Name'}</span>
+                    <span class="date">${dateStr}</span>
+                </div>
+                <div class="log-body">
+                    <p contenteditable="true" oninput="saveLogs()">${data ? data.content : 'Enter stage notes...'}</p>
+                    <div class="tags">
+                        <span class="tag" contenteditable="true" oninput="saveLogs()">${data ? data.tag : 'SURFACE'}</span>
+                    </div>
+                </div>
+            `;
+            container.prepend(logEntry);
+            if (!data) saveLogs();
+        }
+
+        function removeStage(btn) {
+            if(confirm("Delete this log entry?")) {
+                btn.parentElement.remove();
+                saveLogs();
+            }
+        }
+
+        function saveLogs() {
+            const logs = [];
+            document.querySelectorAll('.log-entry').forEach(entry => {
+                logs.push({
+                    title: entry.querySelector('.event-name').innerText,
+                    date: entry.querySelector('.date').innerText,
+                    content: entry.querySelector('.log-body p').innerText,
+                    tag: entry.querySelector('.tag').innerText
+                });
+            });
+            localStorage.setItem('rallyLogs', JSON.stringify(logs));
+        }
+
+        function loadLogs() {
+            const saved = localStorage.getItem('rallyLogs');
+            if (saved) {
+                const logs = JSON.parse(saved);
+                logs.reverse().forEach(log => addNewStage(log));
+            } else {
+                addNewStage({
+                    title: "Example: Forest Rally SS1",
+                    date: "01 Mar 2026",
+                    content: "The 107 handled the tight sections well. Watch ruts on pass 2.",
+                    tag: "GRAVEL"
+                });
+            }
+        }
+
+        function exportToPDF() {
+            const element = document.getElementById('log-container');
+            const opt = {
+                margin:       10,
+                filename:     'Rally-Stage-Logs.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, backgroundColor: '#0f0f0f' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            // Temporary hide delete buttons for clean PDF
+            document.querySelectorAll('.delete-btn').forEach(b => b.style.display = 'none');
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Restore delete buttons
+                document.querySelectorAll('.delete-btn').forEach(b => b.style.display = '');
+            });
+        }
+    </script>
 </body>
 </html>
