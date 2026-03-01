@@ -3,161 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>208 SPEC-R | MASTER TELEMETRY</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;900&display=swap" rel="stylesheet">
-
+    <title>Tony Griffiths | Motorsport Refinishing</title>
     <style>
-        :root { 
-            --rally-red: #e30613; 
-            --rally-yellow: #fde047; 
-            --accent-color: var(--rally-yellow);
+        :root {
+            --racing-red: #e74c3c;
+            --dark-bg: #0b0b0b;
+            --card-bg: #151515;
+            --text: #ffffff;
+            --text-dim: #95a5a6;
         }
-        
-        body { 
-            background-color: #09090b; 
-            color: white; 
-            font-family: 'Inter', sans-serif;
-            margin: 0;
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* --- HEADER --- */
+        header {
+            height: 80vh;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
-            /* Removed vertical centering to eliminate top space */
-            min-height: 100vh;
+            text-align: center;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                        url('https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=1600');
+            background-size: cover;
+            background-position: center;
+            border-bottom: 8px solid var(--racing-red);
         }
 
-        .aero-clip {
-            position: relative;
-            clip-path: polygon(0% 0%, 95% 0%, 100% 25%, 100% 100%, 5% 100%, 0% 75%);
-            overflow: hidden;
-            background: #000;
-        }
+        h1 { font-size: clamp(3rem, 12vw, 7rem); font-style: italic; text-transform: uppercase; line-height: 0.9; }
+        .tagline { font-size: 1.2rem; letter-spacing: 5px; color: var(--text-dim); margin: 20px 0; }
 
-        /* CRT Scanline Effect */
-        .aero-clip::after {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
-            z-index: 10;
-            background-size: 100% 3px;
-            pointer-events: none;
-        }
-
-        .slant-header {
-            font-family: 'Archivo Black', sans-serif;
-            transform: skewX(-12deg);
-            font-size: clamp(2.5rem, 10vw, 6rem);
-            line-height: 0.9;
-        }
-
-        .accent-text { color: var(--accent-color); transition: color 0.3s ease; }
-        .accent-border { border-color: var(--accent-color); transition: border-color 0.3s ease; }
-        .spec-r-highlight { color: var(--rally-red); }
+        /* --- GRID SECTION --- */
+        .container { max-width: 1200px; margin: -100px auto 50px; padding: 0 20px; }
         
-        .shift-active { 
-            border-color: var(--rally-red) !important; 
-            box-shadow: 0 0 20px rgba(227, 6, 19, 0.4);
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
         }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid #222;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover { border-color: var(--racing-red); transform: translateY(-10px); }
+        
+        .card img { width: 100%; height: 250px; object-fit: cover; display: block; }
+        
+        .card-body { padding: 20px; }
+        .card-body h3 { color: var(--racing-red); text-transform: uppercase; margin-bottom: 10px; }
+
+        /* --- CONTACT FORM --- */
+        .contact-section { background: #111; padding: 100px 20px; text-align: center; }
+        
+        form {
+            max-width: 600px;
+            margin: 40px auto 0;
+            display: grid;
+            gap: 15px;
+            text-align: left;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 15px;
+            background: #222;
+            border: 1px solid #333;
+            color: white;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus { outline: 1px solid var(--racing-red); }
+
+        button {
+            background: var(--racing-red);
+            color: white;
+            padding: 15px;
+            border: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover { background: #c0392b; letter-spacing: 2px; }
+
+        footer { padding: 50px; text-align: center; border-top: 1px solid #222; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
-    <main class="w-full max-w-6xl px-6 pt-8 pb-12">
-        <div class="grid lg:grid-cols-2 gap-12 items-center">
-            
-            <div class="flex flex-col">
-                <h1 class="slant-header uppercase italic mb-6">
-                  208<br>
-                    <span class="spec-r-highlight">SPEC-R</span>
-                </h1>
-                
-                <p class="text-zinc-500 text-[10px] uppercase tracking-[0.3em] mb-10 border-l-2 accent-border pl-4">
-                    Chassis #1000000001 // R-Spec Firmware
-                </p>
+    <header>
+        <h1>TONY<br>GRIFFITHS</h1>
+        <p class="tagline">PREMIUM MOTORSPORT VISION</p>
+        <div style="background: var(--racing-red); color: black; padding: 5px 15px; font-weight: 900; transform: skew(-10deg);">NO ROAD CARS</div>
+    </header>
 
-                <div id="tel-container" class="bg-black border border-white/10 p-5 aero-clip w-full max-w-md transition-all duration-75">
-                    <div class="flex justify-between items-center mb-2 relative z-20">
-                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Telemetry Feed</span>
-                        <span id="live-rpm" class="accent-text font-mono text-sm font-bold">0 RPM</span>
-                    </div>
-                    <div class="h-32 relative z-20">
-                        <canvas id="telemetryChart"></canvas>
-                    </div>
+    <div class="container">
+        <div class="grid">
+            <div class="card">
+                <img src="https://images.unsplash.com/photo-1547915720-3367980998f4?auto=format&fit=crop&w=600" alt="Rally Car">
+                <div class="card-body">
+                    <h3>Rally Prep</h3>
+                    <p>Resistant coatings and high-visibility stage liveries.</p>
                 </div>
             </div>
-
-            <div class="flex items-center justify-center">
-                <div class="w-full aspect-video bg-zinc-900 border border-white/5 overflow-hidden">
-                    <img src="https://files.websitebuilder.prositehosting.co.uk/26/21/26218c14-5bee-48e5-9c34-588118cf7abe.png" alt="208 SPEC-R" class="w-full h-full object-cover opacity-90">
+            <div class="card">
+                <img src="https://images.unsplash.com/photo-1562141989-c5c79ac8f576?auto=format&fit=crop&w=600" alt="Track Car">
+                <div class="card-body">
+                    <h3>Circuit Livery</h3>
+                    <p>Sponsor-ready graphics and lightweight aerodynamic finishing.</p>
                 </div>
             </div>
-
+            <div class="card">
+                <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600" alt="Formula Car">
+                <div class="card-body">
+                    <h3>Component Repair</h3>
+                    <p>Specialist carbon fiber and composite panel restoration.</p>
+                </div>
+            </div>
         </div>
-    </main>
+    </div>
 
-    <script>
-        const ctx = document.getElementById('telemetryChart').getContext('2d');
-        const telContainer = document.getElementById('tel-container');
-        let rpmData = Array(40).fill(0);
-        let peakData = Array(40).fill(0);
-        let peakValue = 0;
+    <section class="contact-section">
+        <h2>GET A QUOTE</h2>
+        <p>Serious inquiries for motorsport projects only.</p>
+        
+        <form action="#" method="POST">
+            <input type="text" placeholder="Driver / Team Name" required>
+            <input type="email" placeholder="Email Address" required>
+            <textarea rows="5" placeholder="Project Details (Vehicle Type, Intended Series, etc.)" required></textarea>
+            <button type="submit">SEND TRANSMISSION</button>
+        </form>
+    </section>
 
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array(40).fill(''),
-                datasets: [
-                    { 
-                        data: rpmData, 
-                        borderColor: '#fde047', 
-                        borderWidth: 2, 
-                        pointRadius: 0, 
-                        fill: false, 
-                        tension: 0 
-                    },
-                    { 
-                        data: peakData, 
-                        borderColor: 'rgba(227, 6, 19, 0.4)', 
-                        borderWidth: 1, 
-                        pointRadius: 0, 
-                        fill: false, 
-                        tension: 0,
-                        borderDash: [3, 3]
-                    }
-                ]
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { legend: { display: false } }, 
-                scales: { x: { display: false }, y: { display: false, min: 2000, max: 9500 } }, 
-                animation: false
-            }
-        });
+    <footer>
+        <p>&copy; 2026 TONY GRIFFITHS | STRICTLY COMPETITION</p>
+    </footer>
 
-        setInterval(() => {
-            const base = 6000;
-            const jitter = (Math.random() - 0.5) * 5500;
-            const val = Math.floor(base + jitter);
-
-            if (val > peakValue) peakValue = val;
-            else peakValue *= 0.992;
-
-            if (val > 8200) {
-                telContainer.classList.add('shift-active');
-            } else {
-                telContainer.classList.remove('shift-active');
-            }
-
-            rpmData.push(val); rpmData.shift();
-            peakData.push(peakValue); peakData.shift();
-            
-            chart.update('none');
-            document.getElementById('live-rpm').innerText = `${val} RPM`;
-        }, 85);
-    </script>
 </body>
 </html>
