@@ -9,156 +9,177 @@
             --racing-red: #e74c3c;
             --dark-bg: #0b0b0b;
             --card-bg: #151515;
-            --text: #ffffff;
+            --text-main: #ffffff;
             --text-dim: #95a5a6;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Arial Black', 'Arial', sans-serif;
             background: var(--dark-bg);
-            color: var(--text);
+            color: var(--text-main);
             line-height: 1.6;
             overflow-x: hidden;
         }
 
-        /* --- HEADER: FIXED EMPTY SPACE --- */
+        /* ==================== HEADER (VISION STYLE) ==================== */
         header {
-            min-height: 70vh; /* Controlled height to prevent large top gaps */
+            min-height: 75vh; /* Controlled height to reduce empty top space */
             display: flex;
             flex-direction: column;
-            justify-content: flex-end; /* Pushes text to the bottom near the red bar */
+            justify-content: flex-end; /* Pushes content to the bottom */
             align-items: center;
             text-align: center;
-            padding-bottom: 60px; /* Space above the red bar */
-            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.85)), 
-                        url('https://files.websitebuilder.prositehosting.co.uk/3d/97/3d97fb52-db7a-48d7-8fbf-0e3c419a6b29.jpg');
+            padding-bottom: 50px;
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.9)), 
+                        url('https://files.websitebuilder.prositehosting.co.uk/3d/97/3d97fb52-db7a-48d7-8fbf-0e3c419a6b29.jpg'); /* Replace with your red car image */
             background-size: cover;
             background-position: center;
             border-bottom: 8px solid var(--racing-red);
         }
 
-        h1 { 
-            font-size: clamp(3rem, 12vw, 7rem); 
-            font-style: italic; 
-            text-transform: uppercase; 
-            line-height: 0.85; /* Tighter vertical stacking */
+        h1 {
+            font-size: clamp(2.8rem, 12vw, 7rem);
+            font-style: italic;
+            text-transform: uppercase;
+            line-height: 0.85; /* Tightly stacked like your screenshot */
+            margin-bottom: 10px;
             letter-spacing: -2px;
         }
 
-        .tagline { 
-            font-size: clamp(1rem, 3vw, 1.2rem); 
-            letter-spacing: 5px; 
-            color: var(--text); 
-            margin: 15px 0 25px; 
+        .tagline {
+            font-size: clamp(0.8rem, 3vw, 1.2rem);
+            letter-spacing: 6px;
+            color: var(--text-main);
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            font-weight: 300;
+        }
+
+        .no-road-cars {
+            background: var(--racing-red);
+            color: #000;
+            padding: 10px 25px;
+            font-weight: 900;
+            text-transform: uppercase;
+            transform: skew(-12deg);
+            display: inline-block;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+        }
+
+        /* ==================== GRID SECTION ==================== */
+        .main-container {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 40px;
+            letter-spacing: 4px;
+            color: var(--racing-red);
             text-transform: uppercase;
         }
 
-        .warning-skew {
-            background: var(--racing-red); 
-            color: black; 
-            padding: 8px 20px; 
-            font-weight: 900; 
-            transform: skew(-12deg);
-            display: inline-block;
-            box-shadow: 4px 4px 0px rgba(0,0,0,0.3);
-        }
-
-        /* --- GRID SECTION: CLEAN SPACING --- */
-        .container { 
-            max-width: 1200px; 
-            margin: 60px auto; /* Removed negative margin to prevent overlap */
-            padding: 0 20px; 
-        }
-        
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 25px;
         }
 
         .card {
             background: var(--card-bg);
             border: 1px solid #222;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.3s ease, border-color 0.3s ease;
             overflow: hidden;
         }
 
-        .card:hover { 
-            border-color: var(--racing-red); 
-            transform: translateY(-8px); 
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: var(--racing-red);
         }
-        
-        .card img { 
-            width: 100%; 
-            aspect-ratio: 16/10; /* Keeps images uniform */
-            object-fit: cover; 
-            display: block; 
+
+        .card img {
+            width: 100%;
+            aspect-ratio: 16/9; /* Ensures uniform image sizes */
+            object-fit: cover;
+            display: block;
             filter: grayscale(20%);
-            transition: 0.4s;
+            transition: 0.5s;
         }
 
-        .card:hover img { filter: grayscale(0%); }
-        
-        .card-body { padding: 25px; }
-        .card-body h3 { color: var(--racing-red); text-transform: uppercase; margin-bottom: 8px; font-style: italic; }
-        .card-body p { color: var(--text-dim); font-size: 0.95rem; }
+        .card:hover img {
+            filter: grayscale(0%);
+            transform: scale(1.05);
+        }
 
-        /* --- CONTACT FORM --- */
-        .contact-section { 
-            background: #0d0d0d; 
-            padding: 80px 20px; 
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-content h3 {
+            color: var(--racing-red);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        /* ==================== CONTACT FORM ==================== */
+        .contact-wrap {
+            background: #111;
+            padding: 80px 20px;
             text-align: center;
-            border-top: 1px solid #222;
         }
-        
-        .contact-section h2 { color: var(--racing-red); letter-spacing: 3px; margin-bottom: 10px; }
 
         form {
-            max-width: 550px;
-            margin: 40px auto 0;
-            display: grid;
+            max-width: 500px;
+            margin: 30px auto 0;
+            display: flex;
+            flex-direction: column;
             gap: 15px;
-            text-align: left;
         }
 
         input, textarea {
-            width: 100%;
             padding: 15px;
             background: #1a1a1a;
             border: 1px solid #333;
             color: white;
             font-family: inherit;
-            transition: 0.3s;
         }
 
-        input:focus, textarea:focus { 
-            outline: none; 
+        input:focus, textarea:focus {
+            outline: none;
             border-color: var(--racing-red);
-            background: #222; 
         }
 
-        button {
+        .submit-btn {
             background: var(--racing-red);
             color: white;
-            padding: 18px;
             border: none;
+            padding: 15px;
             font-weight: 900;
             text-transform: uppercase;
             cursor: pointer;
             transition: 0.3s;
-            letter-spacing: 1px;
         }
 
-        button:hover { background: #ff4d3a; letter-spacing: 3px; }
+        .submit-btn:hover {
+            letter-spacing: 2px;
+            background: #c0392b;
+        }
 
-        footer { padding: 60px 20px; text-align: center; border-top: 1px solid #222; color: var(--text-dim); font-size: 0.8rem; letter-spacing: 2px; }
-
-        /* Responsive Fixes */
-        @media (max-width: 768px) {
-            header { min-height: 60vh; }
-            h1 { line-height: 0.9; }
+        footer {
+            padding: 40px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            border-top: 1px solid #222;
         }
     </style>
 </head>
@@ -167,49 +188,48 @@
     <header>
         <h1>TONY<br>GRIFFITHS</h1>
         <p class="tagline">PREMIUM MOTORSPORT VISION</p>
-        <div class="warning-skew">NO ROAD CARS</div>
+        <div class="no-road-cars">NO ROAD CARS</div>
     </header>
 
-    <div class="container">
+    <div class="main-container">
+        <h2 class="section-title">The Gallery</h2>
         <div class="grid">
             <div class="card">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/aa/42/aa420554-9368-4499-92ae-c9f110be2717.jpg" alt="Rally Car Paint">
-                <div class="card-body">
-                    <h3>Rally Prep</h3>
-                    <p>High-visibility stage liveries and impact-resistant coatings.</p>
+                <img src="https://files.websitebuilder.prositehosting.co.uk/aa/42/aa420554-9368-4499-92ae-c9f110be2717.jpg" alt="Rally Car">
+                <div class="card-content">
+                    <h3>Stage Prep</h3>
+                    <p>Refinishing for gravel and tarmac rallying.</p>
                 </div>
             </div>
             <div class="card">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/14/d4/14d49c42-a4c5-473e-a9f6-21335a8b0e40.jpg" alt="Track Car Livery">
-                <div class="card-body">
+                <img src="https://files.websitebuilder.prositehosting.co.uk/14/d4/14d49c42-a4c5-473e-a9f6-21335a8b0e40.jpg" alt="Track Car">
+                <div class="card-content">
                     <h3>Circuit Livery</h3>
-                    <p>Sponsor-ready graphics and lightweight aerodynamic finishing.</p>
+                    <p>Custom team graphics and aerodynamic paintwork.</p>
                 </div>
             </div>
             <div class="card">
                 <img src="https://files.websitebuilder.prositehosting.co.uk/9c/0d/9c0d43a7-690e-4364-b305-ce47bc368f47.jpg" alt="Composite Repair">
-                <div class="card-body">
-                    <h3>Component Repair</h3>
-                    <p>Specialist panel restoration and composite refinishing.</p>
+                <div class="card-content">
+                    <h3>Carbon & Aero</h3>
+                    <p>Specialist repairs and lightweight finishing.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <section class="contact-section">
-        <h2>GET A QUOTE</h2>
-        <p>Serious inquiries for motorsport projects only.</p>
-        
-        <form action="#" method="POST">
+    <section class="contact-wrap">
+        <h2 class="section-title">Get a Quote</h2>
+        <form action="#">
             <input type="text" placeholder="Driver / Team Name" required>
-            <input type="email" placeholder="Email Address" required>
-            <textarea rows="5" placeholder="Project Details (Vehicle Type, Intended Series, etc.)" required></textarea>
-            <button type="submit">SEND TRANSMISSION</button>
+            <input type="email" placeholder="Email" required>
+            <textarea rows="5" placeholder="Project Details" required></textarea>
+            <button type="submit" class="submit-btn">Send Transmission</button>
         </form>
     </section>
 
     <footer>
-        <p>&copy; 2026 TONY GRIFFITHS | STRICTLY COMPETITION</p>
+        <p>&copy; 2026 TONY GRIFFITHS | MOTORSPORT SPECIFICATION ONLY</p>
     </footer>
 
 </body>
