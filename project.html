@@ -1,1 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RODGE QRally Log</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --safety-yellow: #FFD700;
+            --pure-white: #FFFFFF;
+            --pit-black: #121212;
+            --card-bg: #1A1A1A;
+            --psi-cold: #00D1FF;
+            --psi-hot: #FF8C00;
+        }
 
+        body {
+            background-color: var(--pit-black);
+            color: var(--safety-yellow);
+            font-family: 'Arial', sans-serif;
+            margin: 0; padding: 10px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        #capture-area {
+            width: 100%; max-width: 450px;
+            background-color: var(--pit-black);
+            padding: 15px;
+        }
+
+        .header { border-bottom: 2px solid var(--safety-yellow); margin-bottom: 20px; padding-bottom: 10px; }
+        .brand { font-size: 1.8rem; font-weight: 900; text-transform: uppercase; margin: 0; }
+        .title { font-size: 1.1rem; color: var(--pure-white); text-transform: uppercase; margin: 5px 0; }
+
+        .tyre-card {
+            border: 2px solid var(--safety-yellow);
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px; margin-bottom: 15px;
+        }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .tyre-id { font-size: 1.8rem; font-weight: bold; }
+
+        .pressure-group { display: flex; gap: 8px; align-items: center; }
+        .pressure-box { text-align: center; }
+        .pressure-box label { display: block; font-size: 0.6rem; font-weight: bold; margin-bottom: 3px; }
+        
+        .psi-input {
+            width: 55px; height: 35px; background: #111; color: white;
+            border: 1px solid #444; text-align: center; border-radius: 4px;
+        }
+        .psi-input.cold { border-color: var(--psi-cold); }
+        .psi-input.hot { border-color: var(--psi-hot); }
+
+        .delta-display { font-size: 0.7rem; color: #aaa; margin-top: 15px; font-weight: bold; }
+
+        .input-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .label { font-size: 0.65rem; color: #888; text-transform: uppercase; margin-bottom: 4px; text-align: center; }
+
+        .temp-input {
+            width: 100%; height: 50px; background: #2A2A2A; color: white;
+            border: 1px solid #444; border-radius: 6px; text-align: center;
+            font-size: 1.3rem; font-weight: bold;
+        }
+
+        .timestamp { font-size: 0.7rem; color: #555; margin-top: 10px; text-align: right; }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; width: 100%; max-width: 450px; }
+        .btn { flex: 1; padding: 15px; border-radius: 6px; font-weight: bold; border: none; text-transform: uppercase; }
+        .save-btn { background: var(--safety-yellow); color: black; }
+        .reset-btn { background: #222; color: #cc0000; border: 1px solid #cc0000; }
+    </style>
+</head>
+<body>
+
+    <div id="capture-area">
+        <div class="header">
+            <div class="brand">RODGE QRally</div>
+            <div class="title">Tyre Pyrometer Log</div>
+        </div>
+
+        <div id="log-container"></div>
+
+        <div style="margin-top:15px;">
+            <div class="label" style="text-align:left; color:var(--safety-yellow);">Session Notes</div>
+            <textarea id="notes" style="width:100%; background:#1A1A1A; color:white; border:1px solid #444; padding:10px; border-radius:8px;"></textarea>
+        </div>
+        <div class="timestamp" id="ts-display"></div>
+    </div>
+
+    <div class="btn-row">
+        <button class="btn save-btn" onclick="saveSnapshot()">Save Image</button>
+        <button class="btn reset-btn" onclick="if(confirm('Reset all?')) window.location.reload()">Reset</button>
+    </div>
+
+    <script>
+        const tyres = [
+            { id: 'LF', labels: ['Inner', 'Mid', 'Outer'] },
+            { id: 'RF', labels: ['Outer', 'Mid', 'Inner'] },
+            { id: 'LR', labels: ['Inner', 'Mid', 'Outer'] },
+            { id: 'RR', labels: ['Outer', 'Mid', 'Inner'] }
+        ];
+
+        const container = document.getElementById('log-container');
+        tyres.forEach((t, i) => {
+            container.innerHTML += `
+                <div class="tyre-card">
+                    <div class="card-header">
+                        <div class="tyre-id">${t.id}</div>
+                        <div class="pressure-group">
+                            <div class="pressure-box"><label style="color:var(--psi-cold)">COLD</label><input type="number" class="psi-input cold" id="cold-${i}" oninput="calcDelta(${i})"></div>
+                            <div class="pressure-box"><label style="color:var(--psi-hot)">HOT</label><input type="number" class="psi-input hot" id="hot-${i}" oninput="calcDelta(${i})"></div>
+                            <div class="delta-display" id="delta-${i}">Δ 0.0</div>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        ${t.labels.map(l => `<div><div class="label">${l}</div><input type="number" class="temp-input" oninput="updateTemp(this)"></div>`).join('')}
+                    </div>
+                </div>`;
+        });
+
+        function updateTemp(el) {
+            const val = parseFloat(el.value);
+            if (isNaN(val)) { el.style.backgroundColor = "#2A2A2A"; return; }
+            el.style.backgroundColor = val < 70 ? "#0052cc" : (val <= 90 ? "#2d8a2d" : "#cc0000");
+        }
+
+        function calcDelta(index) {
+            const cold = parseFloat(document.getElementById(`cold-${index}`).value) || 0;
+            const hot = parseFloat(document.getElementById(`hot-${index}`).value) || 0;
+            const delta = (hot - cold).toFixed(1);
+            document.getElementById(`delta-${index}`).innerText = `Δ ${delta > 0 ? '+' + delta : delta}`;
+        }
+
+        function saveSnapshot() {
+            document.getElementById('ts-display').innerText = "Logged: " + new Date().toLocaleString();
+            html2canvas(document.getElementById('capture-area'), {backgroundColor: "#121212"}).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `QRally_${Date.now()}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
