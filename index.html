@@ -136,27 +136,36 @@
             }
         }
 
-        function saveLogs() {
-            const logs = [];
-            document.querySelectorAll('.log-entry').forEach(entry => {
-                logs.push({
-                    title: entry.querySelector('.event-name').innerText,
-                    date: entry.querySelector('.date').innerText,
-                    content: entry.querySelector('.log-body p').innerText,
-                    tag: entry.querySelector('.tag').innerText
-                });
-            });
-            localStorage.setItem('rallyLogs', JSON.stringify(logs));
-        }
+      function saveLogs() {
+    const logs = [];
+    document.querySelectorAll('.log-entry').forEach(entry => {
+        logs.push({
+            title: entry.querySelector('.event-name').innerText,
+            date: entry.querySelector('.date').innerText,
+            content: entry.querySelector('.log-body p').innerText,
+            tag: entry.querySelector('.tag').innerText
+        });
+    });
+    localStorage.setItem('rallyLogs', JSON.stringify(logs));
+}
 
-        function loadLogs() {
-            const saved = localStorage.getItem('rallyLogs');
-            if (saved) {
-                const logs = JSON.parse(saved);
-                logs.reverse().forEach(log => addNewStage(log));
-            } else {
-                addNewStage({ title: "Bae Ceredigion", date: "02 Mar 2026", content: "Notes...", tag: "TARMAC" });
-            }
+function loadLogs() {
+    const saved = localStorage.getItem('rallyLogs');
+    const logs = saved ? JSON.parse(saved) : [];
+
+    // If there are saved logs, load them. 
+    // If the list is empty (or new), show Bae Ceredigion.
+    if (logs.length > 0) {
+        logs.reverse().forEach(log => addNewStage(log));
+    } else {
+        addNewStage({ 
+            title: "Bae Ceredigion", 
+            date: "02 Mar 2026", 
+            content: "Notes...", 
+            tag: "TARMAC" 
+        });
+    }
+}
         }
 
         function exportToPDF() {
