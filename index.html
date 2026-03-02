@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stage Log | RODGE</title>
     <link rel="icon" href="https://files.websitebuilder.prositehosting.co.uk/02/10/02108289-beff-440a-aa2a-6fcd4f767da3.png">
-<link rel="apple-touch-icon" href="https://files.websitebuilder.prositehosting.co.uk/02/10/02108289-beff-440a-aa2a-6fcd4f767da3.png">
+    <link rel="apple-touch-icon" href="https://files.websitebuilder.prositehosting.co.uk/02/10/02108289-beff-440a-aa2a-6fcd4f767da3.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -27,7 +27,6 @@
             min-height: 100vh;
         }
 
-        /* UI Styling (Screen Only) */
         .navbar {
             position: sticky; top: 0; z-index: 100;
             display: flex; justify-content: space-between; align-items: center;
@@ -55,25 +54,16 @@
         .date { color: var(--text-muted); font-size: 0.85rem; }
         .log-body p { font-size: 1.1rem; color: #ddd; outline: none; }
 
-        .tag { display: inline-block; background: #333; padding: 4px 12px; font-size: 0.7rem; border-radius: 50px; color: var(--text-muted); }
+        .tag { display: inline-block; background: #333; padding: 4px 12px; font-size: 0.7rem; border-radius: 50px; color: var(--text-muted); margin-top: 10px; }
 
         footer { text-align: center; padding: 40px 0; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
         footer strong { color: var(--accent); }
 
         .delete-btn { position: absolute; top: 10px; right: -35px; background: none; border: none; color: #444; cursor: pointer; font-size: 1.2rem; }
 
-        /* --- PDF INK SAVER OVERRIDES --- */
-        .pdf-mode {
-            background-color: white !important;
-            color: black !important;
-        }
-
-        .pdf-mode .log-entry {
-            background-color: white !important;
-            border: 1px solid #000 !important;
-            color: black !important;
-        }
-
+        /* PDF Overrides */
+        .pdf-mode { background-color: white !important; color: black !important; }
+        .pdf-mode .log-entry { background-color: white !important; border: 1px solid #000 !important; color: black !important; }
         .pdf-mode .event-name { color: #000 !important; border-bottom: 2px solid #000; }
         .pdf-mode .log-body p { color: #333 !important; }
         .pdf-mode .tag { border: 1px solid #000; background: none !important; color: #000 !important; }
@@ -105,19 +95,24 @@
         function addNewStage(data = null) {
             const container = document.getElementById('log-container');
             const now = new Date();
-            const dateStr = data ? data.date : now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            const dateStr = (data && data.date) ? data.date : now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            // Fix: Explicitly check for data title and content [cite: 10]
+            const title = (data && data.title) ? data.title : 'Event Name';
+            const content = (data && data.content) ? data.content : 'Notes...';
+            const tag = (data && data.tag) ? data.tag : 'SURFACE';
 
             const logEntry = document.createElement('div');
             logEntry.className = 'log-entry';
             logEntry.innerHTML = `
                 <button class="delete-btn" onclick="removeStage(this)">×</button>
                 <div class="log-header">
-                    <span class="event-name" contenteditable="true" oninput="saveLogs()">${data ? data.title : 'Event Name'}</span>
+                    <span class="event-name" contenteditable="true" oninput="saveLogs()">${title}</span>
                     <span class="date">${dateStr}</span>
                 </div>
                 <div class="log-body">
-                    <p contenteditable="true" oninput="saveLogs()">${data ? data.content : 'Notes...'}</p>
-                    <span class="tag" contenteditable="true" oninput="saveLogs()">${data ? data.tag : 'SURFACE'}</span>
+                    <p contenteditable="true" oninput="saveLogs()">${content}</p>
+                    <span class="tag" contenteditable="true" oninput="saveLogs()">${tag}</span>
                 </div>
             `;
             container.prepend(logEntry);
@@ -132,46 +127,53 @@
             if(confirm("ARE YOU SURE? This will wipe all notes.")) {
                 document.getElementById('log-container').innerHTML = '';
                 localStorage.removeItem('rallyLogs');
-                addNewStage();
+                // Restart with the default event [cite: 10]
+                addNewStage({ 
+                    title: "Bae Ceredigion", 
+                    date: "02 Mar 2026", 
+                    content: "Notes...", 
+                    tag: "TARMAC" 
+                });
             }
         }
 
-      function saveLogs() {
-    const logs = [];
-    document.querySelectorAll('.log-entry').forEach(entry => {
-        logs.push({
-            title: entry.querySelector('.event-name').innerText,
-            date: entry.querySelector('.date').innerText,
-            content: entry.querySelector('.log-body p').innerText,
-            tag: entry.querySelector('.tag').innerText
-        });
-    });
-    localStorage.setItem('rallyLogs', JSON.stringify(logs));
-}
+        function saveLogs() {
+            const logs = [];
+            document.querySelectorAll('.log-entry').forEach(entry => {
+                logs.push({
+                    title: entry.querySelector('.event-name').innerText,
+                    date: entry.querySelector('.date').innerText,
+                    content: entry.querySelector('.log-body p').innerText,
+                    tag: entry.querySelector('.tag').innerText
+                });
+            });
+            localStorage.setItem('rallyLogs', JSON.stringify(logs));
+        }
 
-function loadLogs() {
-    const saved = localStorage.getItem('rallyLogs');
-    const logs = saved ? JSON.parse(saved) : [];
+        function loadLogs() {
+            const saved = localStorage.getItem('rallyLogs');
+            let logs = [];
+            try {
+                logs = saved ? JSON.parse(saved) : [];
+            } catch (e) {
+                logs = [];
+            }
 
-    // If there are saved logs, load them. 
-    // If the list is empty (or new), show Bae Ceredigion.
-    if (logs.length > 0) {
-        logs.reverse().forEach(log => addNewStage(log));
-    } else {
-        addNewStage({ 
-            title: "Bae Ceredigion", 
-            date: "02 Mar 2026", 
-            content: "Notes...", 
-            tag: "TARMAC" 
-        });
-    }
-}
+            if (logs.length > 0) {
+                logs.reverse().forEach(log => addNewStage(log));
+            } else {
+                // Default fallback if no logs are saved 
+                addNewStage({ 
+                    title: "Bae Ceredigion", 
+                    date: "02 Mar 2026", 
+                    content: "Notes...", 
+                    tag: "TARMAC" 
+                });
+            }
         }
 
         function exportToPDF() {
             const element = document.getElementById('log-content');
-            
-            // 1. Apply Ink Saver Styles
             element.classList.add('pdf-mode');
             document.querySelectorAll('.delete-btn').forEach(b => b.style.display = 'none');
 
@@ -183,7 +185,6 @@ function loadLogs() {
             };
             
             html2pdf().set(opt).from(element).save().then(() => {
-                // 2. Remove Ink Saver Styles back to Dark Mode
                 element.classList.remove('pdf-mode');
                 document.querySelectorAll('.delete-btn').forEach(b => b.style.display = '');
             });
