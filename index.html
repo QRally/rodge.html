@@ -37,10 +37,33 @@
         .logo { font-size: 1.6rem; font-weight: 900; font-style: italic; }
         .logo span { color: var(--accent); }
 
-        .btn { border: none; padding: 10px 16px; font-weight: 800; text-transform: uppercase; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
-        .btn-add { background: var(--accent); color: #000; }
-        .btn-pdf { background: #333; color: #fff; }
-        .btn-clear { background: #442222; color: #ff9999; margin-right: 5px; }
+        /* Small Top Buttons */
+        .btn { border: none; padding: 8px 12px; font-weight: 800; text-transform: uppercase; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
+        .btn-pdf { background: #333; color: #fff; margin-left: 5px; }
+        .btn-clear { background: #442222; color: #ff9999; }
+
+        /* Floating + Stage Button */
+        .fab-add {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 65px;
+            height: 65px;
+            background: var(--accent);
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            cursor: pointer;
+            z-index: 200;
+            border: none;
+            transition: transform 0.2s;
+        }
+        .fab-add:active { transform: scale(0.9); }
 
         .container { max-width: 800px; margin: 20px auto; padding: 0 20px; flex: 1; }
 
@@ -70,7 +93,14 @@
         .pdf-mode footer { color: #000 !important; }
         .pdf-mode footer strong { color: #000 !important; }
 
-        @media (max-width: 900px) { .delete-btn { right: 10px; } }
+        @media (max-width: 900px) { 
+            .delete-btn { right: 10px; } 
+            .fab-add { bottom: 20px; right: 20px; width: 60px; height: 60px; }
+        }
+
+        @media print {
+            .fab-add { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -80,9 +110,10 @@
         <div>
             <button class="btn btn-clear" onclick="clearAllLogs()">Clear</button>
             <button class="btn btn-pdf" onclick="exportToPDF()">PDF</button>
-            <button class="btn btn-add" onclick="addNewStage()">+ Stage</button>
         </div>
     </nav>
+
+    <button class="fab-add" onclick="addNewStage()">+</button>
 
     <div class="container" id="log-content">
         <div id="log-container"></div>
@@ -97,7 +128,6 @@
             const now = new Date();
             const dateStr = (data && data.date) ? data.date : now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-            // Fix: Explicitly check for data title and content [cite: 10]
             const title = (data && data.title) ? data.title : 'Event Name';
             const content = (data && data.content) ? data.content : 'Notes...';
             const tag = (data && data.tag) ? data.tag : 'SURFACE';
@@ -127,13 +157,7 @@
             if(confirm("ARE YOU SURE? This will wipe all notes.")) {
                 document.getElementById('log-container').innerHTML = '';
                 localStorage.removeItem('rallyLogs');
-                // Restart with the default event [cite: 10]
-                addNewStage({ 
-                    title: "Bae Ceredigion", 
-                    date: "02 Mar 2026", 
-                    content: "Notes...", 
-                    tag: "TARMAC" 
-                });
+                addNewStage({ title: "Bae Ceredigion", date: "02 Mar 2026", content: "Notes...", tag: "TARMAC" });
             }
         }
 
@@ -153,22 +177,12 @@
         function loadLogs() {
             const saved = localStorage.getItem('rallyLogs');
             let logs = [];
-            try {
-                logs = saved ? JSON.parse(saved) : [];
-            } catch (e) {
-                logs = [];
-            }
+            try { logs = saved ? JSON.parse(saved) : []; } catch (e) { logs = []; }
 
             if (logs.length > 0) {
                 logs.reverse().forEach(log => addNewStage(log));
             } else {
-                // Default fallback if no logs are saved 
-                addNewStage({ 
-                    title: "Bae Ceredigion", 
-                    date: "02 Mar 2026", 
-                    content: "Notes...", 
-                    tag: "TARMAC" 
-                });
+                addNewStage({ title: "Bae Ceredigion", date: "02 Mar 2026", content: "Notes...", tag: "TARMAC" });
             }
         }
 
@@ -176,6 +190,8 @@
             const element = document.getElementById('log-content');
             element.classList.add('pdf-mode');
             document.querySelectorAll('.delete-btn').forEach(b => b.style.display = 'none');
+            // Hide FAB during PDF export
+            document.querySelector('.fab-add').style.display = 'none';
 
             const opt = {
                 margin: 10,
@@ -187,6 +203,7 @@
             html2pdf().set(opt).from(element).save().then(() => {
                 element.classList.remove('pdf-mode');
                 document.querySelectorAll('.delete-btn').forEach(b => b.style.display = '');
+                document.querySelector('.fab-add').style.display = 'flex';
             });
         }
     </script>
