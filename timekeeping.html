@@ -3,20 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rally Master v4.2 - Freeze Frame</title>
+    <title>Rally Master v4.3</title>
     <style>
         :root { --bg: #000; --main: #ff3e3e; --accent: #ffcc00; --card: #1a1a1a; --freeze: #004400; }
         * { box-sizing: border-box; }
         body { font-family: sans-serif; background: var(--bg); color: var(--main); margin: 0; padding: 15px; touch-action: manipulation; }
         
+        /* Header Image Styles */
+        .header-container {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
         #freeze-zone {
             width: 100%; height: 25vh; border: 4px solid var(--main); border-radius: 15px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             margin-bottom: 15px; background: #050000; cursor: pointer;
-            transition: background 0.2s; /* Smooth color transition */
+            transition: background 0.2s;
         }
 
-        /* This class is added when the timer is frozen */
         #freeze-zone.is-frozen {
             background: var(--freeze);
             border-color: #00ff00;
@@ -52,6 +63,10 @@
     </style>
 </head>
 <body>
+
+    <div class="header-container">
+        <img src="https://files.websitebuilder.prositehosting.co.uk/09/1c/091c8f4e-9e40-4553-94c3-1928cc468d6f.png" alt="Rally Header" class="header-image">
+    </div>
 
     <div id="freeze-zone" onclick="freezeTime()">
         <div id="current-time">00:00:00</div>
@@ -92,27 +107,19 @@
         let lastTime = "";
 
         function updateClock() {
-            // If frozen, we stop updating the UI
             if (isFrozen) return;
-            
             const now = new Date();
             const timeStr = now.toTimeString().split(' ')[0];
             const msStr = "." + String(now.getMilliseconds()).padStart(3, '0');
-            
             document.getElementById('current-time').innerText = timeStr;
             document.getElementById('ms').innerText = msStr;
         }
-
         setInterval(updateClock, 10);
 
         function freezeTime() {
             if (isFrozen) return;
-            
             isFrozen = true;
-            // Capture the exact time shown
             lastTime = document.getElementById('current-time').innerText + document.getElementById('ms').innerText;
-            
-            // UI Feedback
             document.getElementById('freeze-zone').classList.add('is-frozen');
             document.getElementById('frozen-display').innerText = lastTime;
             document.getElementById('pending-box').style.display = 'block';
@@ -121,20 +128,13 @@
 
         function saveEntry() {
             const car = document.getElementById('car-input').value;
-            if (!car) {
-                alert("Please enter a Car Number");
-                return;
-            }
-            
+            if (!car) return;
             const row = document.getElementById('results-table').insertRow(0);
             row.innerHTML = `<td class="car-num">#${car}</td><td style="text-align:right">${lastTime}</td>`;
-            
             resetUI();
         }
 
-        function cancelEntry() {
-            resetUI();
-        }
+        function cancelEntry() { resetUI(); }
 
         function resetUI() {
             isFrozen = false;
