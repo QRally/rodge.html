@@ -3,20 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rally Master Pro v5.2</title>
+    <title>Rally Master Pro v5.3</title>
     <style>
         :root { --bg: #000; --main: #ff3e3e; --accent: #ffcc00; --card: #1a1a1a; --freeze: #004400; }
         * { box-sizing: border-box; }
         body { 
-            font-family: sans-serif; 
-            background: var(--bg); 
-            color: var(--main); 
-            margin: 0; 
-            padding: 15px; 
-            touch-action: manipulation;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            font-family: sans-serif; background: var(--bg); color: var(--main); margin: 0; padding: 15px; 
+            touch-action: manipulation; min-height: 100vh; display: flex; flex-direction: column; 
         }
         
         .header-container { width: 100%; text-align: center; margin-bottom: 20px; }
@@ -25,7 +18,7 @@
         #freeze-zone {
             width: 100%; height: 25vh; border: 4px solid var(--main); border-radius: 15px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            margin-bottom: 15px; background: #050000; cursor: pointer; transition: background 0.2s;
+            margin-bottom: 15px; background: #050000; cursor: pointer; transition: background 0.1s;
         }
         #freeze-zone.is-frozen { background: var(--freeze); border-color: #00ff00; color: #fff; }
 
@@ -41,7 +34,7 @@
         .btn-cancel { flex: 1; background: #444; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
 
         .offset-tool { background: #111; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #888; }
-        .offset-tool input { font-size: 1rem; padding: 5px; width: 80px; margin: 0; background: #222; border-radius: 4px; }
+        .offset-tool input { font-size: 1rem; padding: 5px; width: 80px; margin: 0; background: #222; border: none; color: #fff; border-radius: 4px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         td { padding: 12px; border-bottom: 1px solid #222; font-size: 1.2rem; color: #fff; }
@@ -53,14 +46,7 @@
         .btn-view { background: #1a1a1a; color: #00ff00; border: 1px solid #00ff00; }
         .btn-download { background: #0055ff; color: white; grid-column: span 2; }
 
-        .footer-signature {
-            text-align: center;
-            padding: 20px 0;
-            margin-top: auto;
-            color: #fff;
-            font-size: 0.85rem;
-            letter-spacing: 1px;
-        }
+        .footer-signature { text-align: center; padding: 20px 0; margin-top: auto; color: #fff; font-size: 0.85rem; letter-spacing: 1px; }
         .footer-signature span { color: var(--accent); font-weight: bold; }
         .build-ver { display: block; font-size: 0.65rem; color: #666; margin-top: 5px; text-transform: uppercase; }
 
@@ -107,7 +93,7 @@
 
     <div class="footer-signature">
         QRally Timekeeper by <span>RODGE</span>
-        <span class="build-ver">Build: 2026.03.04.v2</span>
+        <span class="build-ver">Build: 2026.03.04.v3 (Audio)</span>
     </div>
 
     <div id="data-overlay">
@@ -123,6 +109,24 @@
         let isFrozen = false;
         let lastTime = "";
         let timeOffset = parseInt(localStorage.getItem('rallyOffset')) || 0;
+
+        // --- AUDIO ENGINE ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep() {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        }
 
         window.onload = () => {
             document.getElementById('offset-input').value = timeOffset;
@@ -147,6 +151,11 @@
 
         function freezeTime() {
             if (isFrozen) return;
+            
+            // Resume audio context if suspended (browser security)
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            playBeep();
+
             isFrozen = true;
             lastTime = document.getElementById('current-time').innerText + document.getElementById('ms').innerText;
             document.getElementById('freeze-zone').classList.add('is-frozen');
