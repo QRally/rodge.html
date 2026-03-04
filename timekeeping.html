@@ -3,36 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rally Master v4.3</title>
+    <title>Rally Master Pro v5.0</title>
     <style>
         :root { --bg: #000; --main: #ff3e3e; --accent: #ffcc00; --card: #1a1a1a; --freeze: #004400; }
         * { box-sizing: border-box; }
         body { font-family: sans-serif; background: var(--bg); color: var(--main); margin: 0; padding: 15px; touch-action: manipulation; }
         
-        /* Header Image Styles */
-        .header-container {
-            width: 100%;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .header-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-        }
+        .header-container { width: 100%; text-align: center; margin-bottom: 20px; }
+        .header-image { max-width: 100%; height: auto; border-radius: 8px; }
 
         #freeze-zone {
             width: 100%; height: 25vh; border: 4px solid var(--main); border-radius: 15px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            margin-bottom: 15px; background: #050000; cursor: pointer;
-            transition: background 0.2s;
+            margin-bottom: 15px; background: #050000; cursor: pointer; transition: background 0.2s;
         }
-
-        #freeze-zone.is-frozen {
-            background: var(--freeze);
-            border-color: #00ff00;
-            color: #fff;
-        }
+        #freeze-zone.is-frozen { background: var(--freeze); border-color: #00ff00; color: #fff; }
 
         #current-time { font-size: 3.5rem; font-weight: bold; font-variant-numeric: tabular-nums; }
         #ms { font-size: 1.5rem; opacity: 0.6; }
@@ -45,19 +30,20 @@
         .btn-save { flex: 2; background: var(--accent); color: #000; border: none; padding: 15px; font-weight: bold; border-radius: 8px; font-size: 1.2rem; cursor: pointer; }
         .btn-cancel { flex: 1; background: #444; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
 
+        .offset-tool { background: #111; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #888; }
+        .offset-tool input { font-size: 1rem; padding: 5px; width: 80px; margin: 0; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         td { padding: 12px; border-bottom: 1px solid #222; font-size: 1.2rem; color: #fff; }
         .car-num { color: var(--accent); font-weight: bold; }
 
-        .tools { display: flex; gap: 10px; margin-top: 30px; padding-bottom: 50px; }
-        .btn-tool { flex: 1; padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; }
+        .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 30px; padding-bottom: 50px; }
+        .btn-tool { padding: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; }
         .btn-clear { background: #333; color: #ff3e3e; border: 1px solid #ff3e3e; }
         .btn-view { background: #1a1a1a; color: #00ff00; border: 1px solid #00ff00; }
+        .btn-download { background: #0055ff; color: white; grid-column: span 2; }
 
-        #data-overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.95); z-index: 100; padding: 20px; 
-        }
+        #data-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; padding: 20px; }
         #data-text { width: 100%; height: 70%; background: #111; color: #00ff00; font-family: monospace; padding: 10px; border: 1px solid #333; }
         .overlay-btns { display: flex; gap: 10px; margin-top: 15px; }
     </style>
@@ -68,15 +54,19 @@
         <img src="https://files.websitebuilder.prositehosting.co.uk/09/1c/091c8f4e-9e40-4553-94c3-1928cc468d6f.png" alt="Rally Header" class="header-image">
     </div>
 
+    <div class="offset-tool">
+        <span>Offset (ms):</span>
+        <input type="number" id="offset-input" value="0" onchange="saveOffset()" step="100">
+        <small>Adjust to sync with Master Clock</small>
+    </div>
+
     <div id="freeze-zone" onclick="freezeTime()">
         <div id="current-time">00:00:00</div>
         <div id="ms">.000</div>
     </div>
 
     <div id="pending-box">
-        <div style="color: var(--accent); text-align: center; font-weight: bold; font-size: 1.2rem;">
-            FROZEN: <span id="frozen-display"></span>
-        </div>
+        <div style="color: var(--accent); text-align: center; font-weight: bold;">FROZEN: <span id="frozen-display"></span></div>
         <div class="input-row">
             <input type="number" id="car-input" placeholder="CAR #" inputmode="numeric">
             <div class="btn-group">
@@ -89,8 +79,9 @@
     <table id="results-table"></table>
 
     <div class="tools">
-        <button class="btn-tool btn-clear" onclick="clearLog()">Clear</button>
-        <button class="btn-tool btn-view" onclick="showData()">View Data</button>
+        <button class="btn-tool btn-clear" onclick="clearLog()">Clear All</button>
+        <button class="btn-tool btn-view" onclick="showData()">View CSV</button>
+        <button class="btn-tool btn-download" onclick="downloadCSV()">Download CSV File</button>
     </div>
 
     <div id="data-overlay">
@@ -105,16 +96,29 @@
     <script>
         let isFrozen = false;
         let lastTime = "";
+        let timeOffset = parseInt(localStorage.getItem('rallyOffset')) || 0;
+
+        // On Load: Restore data
+        window.onload = () => {
+            document.getElementById('offset-input').value = timeOffset;
+            const savedData = JSON.parse(localStorage.getItem('rallyEntries')) || [];
+            savedData.forEach(entry => addRowToTable(entry.car, entry.time, false));
+        };
 
         function updateClock() {
             if (isFrozen) return;
-            const now = new Date();
+            const now = new Date(Date.now() + timeOffset);
             const timeStr = now.toTimeString().split(' ')[0];
             const msStr = "." + String(now.getMilliseconds()).padStart(3, '0');
             document.getElementById('current-time').innerText = timeStr;
             document.getElementById('ms').innerText = msStr;
         }
         setInterval(updateClock, 10);
+
+        function saveOffset() {
+            timeOffset = parseInt(document.getElementById('offset-input').value) || 0;
+            localStorage.setItem('rallyOffset', timeOffset);
+        }
 
         function freezeTime() {
             if (isFrozen) return;
@@ -129,12 +133,21 @@
         function saveEntry() {
             const car = document.getElementById('car-input').value;
             if (!car) return;
-            const row = document.getElementById('results-table').insertRow(0);
-            row.innerHTML = `<td class="car-num">#${car}</td><td style="text-align:right">${lastTime}</td>`;
+            
+            addRowToTable(car, lastTime, true);
             resetUI();
         }
 
-        function cancelEntry() { resetUI(); }
+        function addRowToTable(car, time, shouldSave) {
+            const row = document.getElementById('results-table').insertRow(0);
+            row.innerHTML = `<td class="car-num">#${car}</td><td style="text-align:right">${time}</td>`;
+            
+            if (shouldSave) {
+                const currentEntries = JSON.parse(localStorage.getItem('rallyEntries')) || [];
+                currentEntries.push({ car, time });
+                localStorage.setItem('rallyEntries', JSON.stringify(currentEntries));
+            }
+        }
 
         function resetUI() {
             isFrozen = false;
@@ -143,18 +156,36 @@
             document.getElementById('freeze-zone').classList.remove('is-frozen');
         }
 
+        function cancelEntry() { resetUI(); }
+
         function clearLog() {
-            if (confirm("Delete all data?")) document.getElementById('results-table').innerHTML = "";
+            if (confirm("Delete all data? This cannot be undone.")) {
+                document.getElementById('results-table').innerHTML = "";
+                localStorage.removeItem('rallyEntries');
+            }
+        }
+
+        function generateCSV() {
+            let csv = "Car,Time\n";
+            const entries = JSON.parse(localStorage.getItem('rallyEntries')) || [];
+            // We reverse it because the table shows newest first, but CSV usually wants chronological
+            entries.forEach(e => { csv += `${e.car},${e.time}\n`; });
+            return csv;
         }
 
         function showData() {
-            let csv = "Car,Time\n";
-            document.querySelectorAll("#results-table tr").forEach(row => {
-                const cols = row.querySelectorAll("td");
-                csv += `${cols[0].innerText.replace('#','')},${cols[1].innerText}\n`;
-            });
-            document.getElementById('data-text').value = csv;
+            document.getElementById('data-text').value = generateCSV();
             document.getElementById('data-overlay').style.display = 'block';
+        }
+
+        function downloadCSV() {
+            const csvContent = generateCSV();
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `rally_results_${new Date().getTime()}.csv`);
+            a.click();
         }
 
         function closeOverlay() { document.getElementById('data-overlay').style.display = 'none'; }
@@ -163,7 +194,7 @@
             const text = document.getElementById('data-text');
             text.select();
             document.execCommand('copy');
-            alert("Copied to clipboard!");
+            alert("Copied!");
         }
     </script>
 </body>
