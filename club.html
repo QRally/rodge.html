@@ -11,21 +11,26 @@
             font-family: 'Segoe UI', Tahoma, sans-serif; overflow-x: hidden;
             background-image: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
             min-height: 100vh;
-            scroll-behavior: smooth; /* Smooth scrolling for the upload button */
+            scroll-behavior: smooth; /* Enables smooth sliding to the bottom */
         }
 
-        /* --- NAVIGATION & TICKER --- */
+        /* --- NAVIGATION & TICKER (FIXED LAYOUT SHIFT) --- */
         .top-nav {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 2001;
             display: flex; justify-content: space-between; align-items: center;
             padding: 15px 25px; box-sizing: border-box;
             background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
         }
-        .logo { font-size: 0.75rem; letter-spacing: 2px; font-weight: bold; line-height: 1.3; text-transform: uppercase; }
+        .logo { 
+            font-size: 0.75rem; letter-spacing: 2px; font-weight: bold; line-height: 1.3; 
+            text-transform: uppercase; flex-shrink: 0; 
+        }
         .refresh-btn {
             font-size: 0.6rem; color: #ffd700; cursor: pointer;
             border: 1px solid rgba(255, 215, 0, 0.5); padding: 6px 14px;
             border-radius: 4px; transition: 0.3s; text-transform: uppercase; font-weight: bold;
+            flex-shrink: 0; white-space: nowrap;
         }
 
         .ticker-wrap {
@@ -57,6 +62,7 @@
         }
         .polaroid img, .upload-placeholder { width: 100%; height: 250px; object-fit: cover; pointer-events: none; }
         
+        /* Fixed Upload Card Alignment */
         .upload-placeholder {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: #f0f0f0; color: #222;
@@ -92,32 +98,21 @@
         .verified { background: #000; color: #ffd700; border: 1px solid #ffd700; }
         .committee { background: #ff4444; color: white; }
 
-        /* --- STATIC UPLOAD SECTION (NEW) --- */
+        /* --- SUBMISSION ZONE (STATIC BOTTOM) --- */
         .submission-section {
-            background: #111;
-            padding: 80px 20px;
-            margin-top: 100px;
+            background: #111; padding: 80px 20px; margin-top: 100px;
             border-top: 2px solid #ffd700;
         }
-        .form-container {
-            max-width: 500px;
-            margin: 0 auto;
-            text-align: left;
-        }
+        .form-container { max-width: 500px; margin: 0 auto; text-align: left; }
         .form-container h2 {
-            color: #ffd700;
-            font-family: 'Courier New', monospace;
-            text-align: center;
-            letter-spacing: 4px;
-            margin-bottom: 40px;
+            color: #ffd700; font-family: 'Courier New', monospace;
+            text-align: center; letter-spacing: 4px; margin-bottom: 40px;
         }
-        label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
         input, textarea { 
             width: 100%; padding: 14px; margin: 8px 0 25px 0; 
             background: #000; border: 1px solid #333; color: white; 
             box-sizing: border-box; border-radius: 4px;
         }
-        input:focus, textarea:focus { border-color: #ffd700; outline: none; }
         .btn-submit { 
             width: 100%; padding: 18px; background: #ffd700; color: black; 
             border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; 
@@ -177,18 +172,10 @@
         <div class="form-container">
             <h2>MEMBER LOGBOOK</h2>
             <form action="https://formspree.io/f/YOUR_ID_HERE" method="POST" enctype="multipart/form-data">
-                <label>NAME / INSTAGRAM</label>
-                <input type="text" name="handle" placeholder="@your_handle" required>
-                
-                <label>CAR MODEL</label>
-                <input type="text" name="car" placeholder="e.g. BMW M4" required>
-                
-                <label>LIST MODIFICATIONS</label>
-                <textarea name="mods" rows="4" placeholder="What have you done to it?"></textarea>
-                
-                <label>PHOTO UPLOAD</label>
+                <input type="text" name="handle" placeholder="NAME / INSTAGRAM" required>
+                <input type="text" name="car" placeholder="CAR MODEL" required>
+                <textarea name="mods" rows="4" placeholder="LIST MODIFICATIONS"></textarea>
                 <input type="file" name="upload" accept="image/*" required style="border:none; padding-left:0;">
-                
                 <button type="submit" class="btn-submit">SEND TO COMMITTEE</button>
             </form>
         </div>
@@ -208,7 +195,7 @@
     </footer>
 
     <script>
-        const clubEvents = ["📢 NEXT CLUB MEET: FOREST RUN - MARCH 20TH @ 10AM", "📸 PHOTO SUBMISSIONS NOW OPEN", "🛠️ TECHNICAL NIGHT: APRIL 5TH"];
+        const clubEvents = ["📢 NEXT CLUB MEET: MARCH 20TH @ 10AM", "📸 PHOTO SUBMISSIONS OPEN", "🛠️ TECHNICAL NIGHT: APRIL 5TH"];
 
         const memberData = [
             {
@@ -269,7 +256,6 @@
 
         function resetStack() { document.querySelectorAll('.polaroid').forEach(p => p.classList.remove('swiped')); }
         
-        // SMOOTH SCROLL FUNCTION
         function scrollToUpload() {
             document.getElementById('upload-zone').scrollIntoView({ behavior: 'smooth' });
         }
