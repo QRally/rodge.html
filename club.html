@@ -50,20 +50,19 @@
         .section-header { font-family: 'Courier New', monospace; font-size: 2.2rem; letter-spacing: 8px; margin-bottom: 10px; text-transform: uppercase; }
         .member-count { color: #ffd700; font-size: 0.9rem; letter-spacing: 3px; font-weight: bold; margin-bottom: 60px; text-transform: uppercase; }
 
-        /* --- PHOTO STACK (IMPROVED) --- */
+        /* --- PHOTO STACK (ROBUST VERSION) --- */
         .stack-container { position: relative; width: 300px; height: 400px; margin: 0 auto 100px auto; perspective: 1000px; }
         
         .polaroid {
             position: absolute; width: 100%; height: 100%; background: white; padding: 15px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.8); box-sizing: border-box; cursor: pointer;
             transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.4s; user-select: none;
-            /* Flexbox ensures internal elements don't overlap */
-            display: flex; flex-direction: column;
+            display: flex; flex-direction: column; overflow: hidden; /* Keep children inside */
         }
 
         .polaroid img, .upload-placeholder { 
             width: 100%; height: 260px; object-fit: cover; pointer-events: none; 
-            flex-shrink: 0; /* Prevents image from squishing */
+            flex-shrink: 0; background: #eee; /* Defensive background for broken links */
         }
         
         .upload-placeholder {
@@ -78,26 +77,22 @@
             text-align: center; margin: auto 0; font-size: 1.1rem; 
         }
 
-        /* Improved Stacking & Rotations */
         .c1 { transform: rotate(-4deg); z-index: 3; }
         .c2 { transform: rotate(3deg); z-index: 2; top: 5px; left: 5px; }
         .c3 { transform: rotate(-1.5deg); z-index: 1; background: #ffd700 !important; top: 10px; }
         
         .swiped { transform: translateX(200%) rotate(45deg) !important; opacity: 0; pointer-events: none; }
 
-        /* --- GARAGE GRID & CARDS --- */
+        /* --- GARAGE GRID --- */
         .garage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px; }
         .garage-card { height: 440px; perspective: 1000px; cursor: pointer; }
-        .featured-card { width: 100%; max-width: 600px; height: 500px; margin: 0 auto; }
-
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .garage-card.flipped .card-inner { transform: rotateY(180deg); }
-        .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: white; padding: 15px; box-sizing: border-box; border-radius: 4px; transition: 0.3s ease; }
-        .face-front img { width: 100%; height: 80%; object-fit: cover; }
+        .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: white; padding: 15px; box-sizing: border-box; border-radius: 4px; }
+        .face-front img { width: 100%; height: 80%; object-fit: cover; background: #eee; }
         .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
         .card-footer p { color: #222; font-family: 'Courier New', monospace; font-weight: bold; margin: 0; }
         .tap-btn { background: #555; color: white; font-size: 0.6rem; padding: 6px 12px; border-radius: 4px; font-weight: bold; }
-
         .face-back { transform: rotateY(180deg); background: #f4f4f4; color: #222; display: flex; flex-direction: column; justify-content: center; text-align: center; }
         .face-back h3 { font-family: 'Courier New', monospace; border-bottom: 2px solid #ddd; padding-bottom: 12px; margin-bottom: 20px; }
         .face-back ul { list-style: none; padding: 0; margin: 0; font-size: 0.9rem; line-height: 1.8; font-weight: 600; }
@@ -108,31 +103,17 @@
         .committee { background: #ff4444; color: white; }
 
         /* --- SUBMISSION ZONE --- */
-        .submission-section {
-            background: #111; padding: 80px 20px; margin-top: 100px;
-            border-top: 2px solid #ffd700;
-        }
+        .submission-section { background: #111; padding: 80px 20px; margin-top: 100px; border-top: 2px solid #ffd700; }
         .form-container { max-width: 500px; margin: 0 auto; text-align: left; }
-        .form-container h2 {
-            color: #ffd700; font-family: 'Courier New', monospace;
-            text-align: center; letter-spacing: 4px; margin-bottom: 40px;
-        }
-        input, textarea { 
-            width: 100%; padding: 14px; margin: 8px 0 25px 0; 
-            background: #000; border: 1px solid #333; color: white; 
-            box-sizing: border-box; border-radius: 4px;
-        }
-        .btn-submit { 
-            width: 100%; padding: 18px; background: #ffd700; color: black; 
-            border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; 
-            border-radius: 4px; letter-spacing: 2px;
-        }
+        .form-container h2 { color: #ffd700; font-family: 'Courier New', monospace; text-align: center; letter-spacing: 4px; margin-bottom: 40px; }
+        input, textarea { width: 100%; padding: 14px; margin: 8px 0 25px 0; background: #000; border: 1px solid #333; color: white; box-sizing: border-box; border-radius: 4px; }
+        .btn-submit { width: 100%; padding: 18px; background: #ffd700; color: black; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 4px; letter-spacing: 2px; }
 
         /* --- FOOTER --- */
         .club-footer { background: #000; padding: 60px 20px; text-align: center; }
         .footer-logo { font-family: 'Courier New', monospace; font-size: 1.2rem; font-weight: bold; letter-spacing: 4px; color: #ffd700; margin-bottom: 20px; }
-        .footer-links a { color: white; text-decoration: none; margin: 0 15px; font-size: 0.8rem; letter-spacing: 1px; transition: 0.3s; }
-        .footer-info { font-size: 0.7rem; color: #666; letter-spacing: 1px; line-height: 2; margin-top: 20px;}
+        .footer-links a { color: white; text-decoration: none; margin: 0 15px; font-size: 0.8rem; letter-spacing: 1px; }
+        .footer-info { font-size: 0.7rem; color: #666; letter-spacing: 1px; line-height: 2; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -152,11 +133,11 @@
 
         <div class="stack-container">
             <div class="polaroid c1" onclick="this.classList.add('swiped')">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/69/48/6948ab01-fe8d-4b69-b072-974e4051c100.png">
+                <img src="https://files.websitebuilder.prositehosting.co.uk/69/48/6948ab01-fe8d-4b69-b072-974e4051c100.png" onerror="this.style.display='none'">
                 <p>JOIN THE CONVOY</p>
             </div>
             <div class="polaroid c2" onclick="this.classList.add('swiped')">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/11/db/11dbbfb6-fa92-409d-acb3-f955143a8303.png">
+                <img src="https://files.websitebuilder.prositehosting.co.uk/11/db/11dbbfb6-fa92-409d-acb3-f955143a8303.png" onerror="this.style.display='none'">
                 <p>MEMBER</p>
             </div>
             <div class="polaroid c3" onclick="scrollToUpload()">
@@ -176,32 +157,6 @@
         <h2 style="font-family: 'Courier New', monospace; letter-spacing: 4px; margin: 40px 0 40px 0;">CLUB GARAGE</h2>
         <div class="garage-grid" id="main-garage"></div>
     </section>
-
-    <section class="submission-section" id="upload-zone">
-        <div class="form-container">
-            <h2>MEMBER LOGBOOK</h2>
-            <form action="https://formspree.io/f/YOUR_ID_HERE" method="POST" enctype="multipart/form-data">
-                <input type="text" name="handle" placeholder="NAME / INSTAGRAM" required>
-                <input type="text" name="car" placeholder="CAR MODEL" required>
-                <textarea name="mods" rows="4" placeholder="LIST MODIFICATIONS"></textarea>
-                <input type="file" name="upload" accept="image/*" required style="border:none; padding-left:0;">
-                <button type="submit" class="btn-submit">SEND TO COMMITTEE</button>
-            </form>
-        </div>
-    </section>
-
-    <footer class="club-footer">
-        <div class="footer-logo">THE CAMBRIAN FORRESTERS</div>
-        <div class="footer-links">
-            <a href="#">INSTAGRAM</a>
-            <a href="#">FACEBOOK</a>
-            <a href="mailto:contact@forresters.com">EMAIL US</a>
-        </div>
-        <div class="footer-info">
-            POWYS, WALES • EST. 2024<br>
-            &copy; 2026 THE CAMBRIAN FORRESTERS MOTOR CLUB.
-        </div>
-    </footer>
 
     <script>
         const clubEvents = ["📢 NEXT CLUB MEET: MARCH 20TH @ 10AM", "📢 WEB DEVELOPMENT: RODGE", "📸 PHOTO SUBMISSIONS OPEN", "🛠️ TECHNICAL NIGHT: APRIL 5TH"];
@@ -239,10 +194,10 @@
         function createCardHTML(car, isFeatured = false) {
             const badge = car.committee ? `<span class="badge committee">COMMITTEE</span>` : (car.verified ? `<span class="badge verified">✓ VERIFIED</span>` : '');
             return `
-                <div class="garage-card ${isFeatured ? 'featured-card' : ''}" onclick="this.classList.toggle('flipped')">
+                <div class="garage-card" onclick="this.classList.toggle('flipped')">
                     <div class="card-inner">
                         <div class="face face-front">
-                            <img src="${car.img}">
+                            <img src="${car.img}" onerror="this.src='https://via.placeholder.com/300x200?text=Car+Image+Missing'">
                             <div class="card-footer"><p>${car.name}</p><div class="tap-btn">SPECS</div></div>
                         </div>
                         <div class="face face-back">
@@ -257,18 +212,11 @@
         function init() {
             document.getElementById('event-ticker').innerHTML = clubEvents.map(e => `<span class="ticker-item">${e}</span>`).join('');
             const garage = document.getElementById('main-garage');
-            const featuredGarage = document.getElementById('featured-garage');
-            const featuredArea = document.getElementById('featured-area');
-            
-            document.getElementById('member-counter').innerText = `${memberData.length} REGISTERED CLUB MEMBERS`;
+            const memberCounter = document.getElementById('member-counter');
+            if(memberCounter) memberCounter.innerText = `${memberData.length} REGISTERED CLUB MEMBERS`;
             
             memberData.forEach(car => {
-                if (car.featured) {
-                    featuredArea.style.display = 'block';
-                    featuredGarage.innerHTML += createCardHTML(car, true);
-                } else {
-                    garage.innerHTML += createCardHTML(car, false);
-                }
+                garage.innerHTML += createCardHTML(car, false);
             });
         }
 
