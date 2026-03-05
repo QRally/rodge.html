@@ -11,6 +11,7 @@
             font-family: 'Segoe UI', Tahoma, sans-serif; overflow-x: hidden;
             background-image: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
             min-height: 100vh;
+            scroll-behavior: smooth; /* Smooth scrolling for the upload button */
         }
 
         /* --- NAVIGATION & TICKER --- */
@@ -91,42 +92,40 @@
         .verified { background: #000; color: #ffd700; border: 1px solid #ffd700; }
         .committee { background: #ff4444; color: white; }
 
-        /* --- MODAL (FIXED) --- */
-        .modal { 
-            display: none; 
-            position: fixed; 
-            z-index: 9999; /* Higher z-index to stay on top */
-            left: 0; top: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.85); /* Solid fallback */
-            backdrop-filter: blur(10px); 
-            align-items: center; 
-            justify-content: center; 
-            overflow-y: auto; /* Allow scrolling if screen is small */
+        /* --- STATIC UPLOAD SECTION (NEW) --- */
+        .submission-section {
+            background: #111;
+            padding: 80px 20px;
+            margin-top: 100px;
+            border-top: 2px solid #ffd700;
         }
-        .modal-content { 
-            background: #111; 
-            padding: 30px; 
-            border-radius: 12px; 
-            width: 90%; 
-            max-width: 400px; 
-            border: 2px solid #ffd700; 
-            position: relative;
-            margin: auto; /* Centering helper */
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: left;
         }
+        .form-container h2 {
+            color: #ffd700;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            letter-spacing: 4px;
+            margin-bottom: 40px;
+        }
+        label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
         input, textarea { 
-            width: 100%; padding: 12px; margin: 10px 0 15px 0; 
-            background: #000; border: 1px solid #444; color: white; 
+            width: 100%; padding: 14px; margin: 8px 0 25px 0; 
+            background: #000; border: 1px solid #333; color: white; 
             box-sizing: border-box; border-radius: 4px;
         }
-        input:focus { border-color: #ffd700; outline: none; }
+        input:focus, textarea:focus { border-color: #ffd700; outline: none; }
         .btn-submit { 
-            width: 100%; padding: 16px; background: #ffd700; color: black; 
+            width: 100%; padding: 18px; background: #ffd700; color: black; 
             border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; 
-            border-radius: 4px; margin-top: 10px;
+            border-radius: 4px; letter-spacing: 2px;
         }
 
         /* --- FOOTER --- */
-        .club-footer { background: rgba(0, 0, 0, 0.8); border-top: 1px solid rgba(255, 215, 0, 0.2); padding: 60px 20px; text-align: center; margin-top: 100px; }
+        .club-footer { background: #000; padding: 60px 20px; text-align: center; }
         .footer-logo { font-family: 'Courier New', monospace; font-size: 1.2rem; font-weight: bold; letter-spacing: 4px; color: #ffd700; margin-bottom: 20px; }
         .footer-links a { color: white; text-decoration: none; margin: 0 15px; font-size: 0.8rem; letter-spacing: 1px; transition: 0.3s; }
         .footer-info { font-size: 0.7rem; color: #666; letter-spacing: 1px; line-height: 2; margin-top: 20px;}
@@ -156,7 +155,7 @@
                 <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600">
                 <p>MEMBER INTAKE</p>
             </div>
-            <div class="polaroid c3" onclick="toggleModal()">
+            <div class="polaroid c3" onclick="scrollToUpload()">
                 <div class="upload-placeholder">
                     <h1>📸</h1>
                     <h3>UPLOAD RIDE</h3>
@@ -174,27 +173,26 @@
         <div class="garage-grid" id="main-garage"></div>
     </section>
 
-    <div id="uploadModal" class="modal">
-        <div class="modal-content">
-            <h2 style="color:#ffd700; font-family:'Courier New', monospace; margin-top:0; text-align:center;">MEMBER LOGBOOK</h2>
+    <section class="submission-section" id="upload-zone">
+        <div class="form-container">
+            <h2>MEMBER LOGBOOK</h2>
             <form action="https://formspree.io/f/YOUR_ID_HERE" method="POST" enctype="multipart/form-data">
-                <label style="font-size:0.7rem; color:#888;">NAME / INSTAGRAM</label>
-                <input type="text" name="handle" placeholder="@username" required>
+                <label>NAME / INSTAGRAM</label>
+                <input type="text" name="handle" placeholder="@your_handle" required>
                 
-                <label style="font-size:0.7rem; color:#888;">CAR MODEL</label>
-                <input type="text" name="car" placeholder="e.g. Ford Escort Mk2" required>
+                <label>CAR MODEL</label>
+                <input type="text" name="car" placeholder="e.g. BMW M4" required>
                 
-                <label style="font-size:0.7rem; color:#888;">LIST MODIFICATIONS</label>
-                <textarea name="mods" rows="3" placeholder="Engine, Suspension, etc."></textarea>
+                <label>LIST MODIFICATIONS</label>
+                <textarea name="mods" rows="4" placeholder="What have you done to it?"></textarea>
                 
-                <label style="font-size:0.7rem; color:#888;">PHOTO UPLOAD</label>
-                <input type="file" name="upload" accept="image/*" required style="border:none; padding:10px 0;">
+                <label>PHOTO UPLOAD</label>
+                <input type="file" name="upload" accept="image/*" required style="border:none; padding-left:0;">
                 
                 <button type="submit" class="btn-submit">SEND TO COMMITTEE</button>
-                <p onclick="toggleModal()" style="text-align:center; color:#ffd700; cursor:pointer; margin-top:15px; font-size:0.8rem; text-decoration:underline;">CANCEL</p>
             </form>
         </div>
-    </div>
+    </section>
 
     <footer class="club-footer">
         <div class="footer-logo">THE CAMBRIAN FORRESTERS</div>
@@ -271,13 +269,9 @@
 
         function resetStack() { document.querySelectorAll('.polaroid').forEach(p => p.classList.remove('swiped')); }
         
-        function toggleModal() { 
-            const m = document.getElementById('uploadModal'); 
-            const isVisible = (m.style.display === 'flex');
-            m.style.display = isVisible ? 'none' : 'flex'; 
-            
-            // Prevent background scrolling when modal is open
-            document.body.style.overflow = isVisible ? 'auto' : 'hidden';
+        // SMOOTH SCROLL FUNCTION
+        function scrollToUpload() {
+            document.getElementById('upload-zone').scrollIntoView({ behavior: 'smooth' });
         }
         
         init();
