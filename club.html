@@ -216,16 +216,7 @@
                 featured: false,
                 specs: ["1300 16v", "Bilsteins", "Challenge ECU", "Road Rally"]
             }
-                        {
-                name: "FORD FIESTA",
-                img: "https://files.websitebuilder.prositehosting.co.uk/a0/ac/a0acd9e0-3144-41fa-ac7b-0f4912dd9cde.jpg",
-                handle: "@Wrc",
-                verified: true,
-                committee: false,
-                featured: false,
-                specs: ["1600 16v", "All the bells", "and it Whistles", "Stage Rally"]
-            }
-        ];
+            ];
 
         function createCardHTML(car, isFeatured = false) {
             const badge = car.committee ? `<span class="badge committee">COMMITTEE</span>` : (car.verified ? `<span class="badge verified">✓ VERIFIED</span>` : '');
