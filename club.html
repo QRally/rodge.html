@@ -67,9 +67,23 @@
         .upload-placeholder h3 { margin: 10px 0 0 0; font-family: 'Courier New', monospace; font-size: 1.1rem; }
 
         .polaroid p { color: #222; font-family: 'Courier New', monospace; font-weight: bold; text-align: center; margin-top: 25px; font-size: 1.1rem; }
-        .c1 { transform: rotate(-3deg); z-index: 3; }
-        .c2 { transform: rotate(2deg); z-index: 2; }
-        .c3 { transform: rotate(0deg); z-index: 1; background: #ffd700 !important; }
+/* --- UPDATED PHOTO STACK ROTATIONS --- */
+.c1 { 
+    transform: rotate(-4deg); 
+    z-index: 3; 
+}
+.c2 { 
+    transform: rotate(3deg); 
+    z-index: 2; 
+    /* Offset it slightly so it's not perfectly centered under c1 */
+    left: 5px; 
+}
+.c3 { 
+    transform: rotate(-1.5deg); 
+    z-index: 1; 
+    background: #ffd700 !important; 
+    top: 5px;
+}
         .swiped { transform: translateX(200%) rotate(45deg) !important; opacity: 0; pointer-events: none; }
 
         /* --- GARAGE GRID & CARDS --- */
