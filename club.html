@@ -1,197 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Cambrian Forresters Motor Club | Owners Section</title>
-    <style>
-        /* --- GLOBAL THEME --- */
-        body {
-            margin: 0; padding: 0; background: #0a0a0a; color: white;
-            font-family: 'Segoe UI', Tahoma, sans-serif; overflow-x: hidden;
-            background-image: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
-            min-height: 100vh;
-        }
+/* --- UPDATED MODAL STYLING --- */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 9999; /* Higher z-index to ensure it is above EVERYTHING else */
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.9); 
+    backdrop-filter: blur(10px);
+    align-items: center; 
+    justify-content: center;
+    overflow-y: auto; /* Allows scrolling if the phone screen is small */
+}
 
-        /* --- NAVIGATION --- */
-        .top-nav {
-            position: fixed; top: 0; left: 0; width: 100%; z-index: 2000;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 25px; box-sizing: border-box;
-            background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .logo { font-size: 0.75rem; letter-spacing: 2px; font-weight: bold; line-height: 1.3; text-transform: uppercase; }
-        .refresh-btn {
-            font-size: 0.65rem; color: #ffd700; cursor: pointer;
-            border: 1px solid rgba(255, 215, 0, 0.4); padding: 6px 12px;
-            border-radius: 4px; transition: 0.3s; text-transform: uppercase; font-weight: bold;
-        }
-        .refresh-btn:hover { background: #ffd700; color: black; }
+.modal-content {
+    background: #111; 
+    padding: 30px; 
+    border-radius: 8px;
+    width: 90%; 
+    max-width: 400px; 
+    border: 1px solid #ffd700;
+    margin: auto; /* Centers the box perfectly */
+    position: relative;
+}
 
-        /* --- SECTIONS --- */
-        .page-section { padding: 140px 20px 60px 20px; max-width: 1200px; margin: 0 auto; text-align: center; }
-        h1 { font-family: 'Courier New', monospace; letter-spacing: 4px; margin-bottom: 50px; }
+/* --- PREVENT BACKGROUND SCROLL WHEN MODAL OPEN --- */
+body.modal-open {
+    overflow: hidden;
+}
 
-        /* --- SWIPE STACK --- */
-        .stack-container { position: relative; width: 280px; height: 380px; margin: 0 auto 100px auto; perspective: 1000px; }
-        .polaroid {
-            position: absolute; width: 100%; height: 100%; background: white; padding: 10px 10px 35px 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); box-sizing: border-box; cursor: pointer;
-            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.4s; user-select: none;
-        }
-        .polaroid img { width: 100%; height: 240px; object-fit: cover; pointer-events: none; }
-        .polaroid p { color: #222; font-family: 'Courier New', monospace; font-weight: bold; text-align: center; margin-top: 20px; }
-        .c1 { transform: rotate(-3deg); z-index: 3; }
-        .c2 { transform: rotate(2deg); z-index: 2; }
-        .c3 { transform: rotate(0deg); z-index: 1; background: #ffd700 !important; }
-        .swiped { transform: translateX(180%) rotate(40deg) !important; opacity: 0; pointer-events: none; }
-
-        /* --- GARAGE GRID --- */
-        .garage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; margin-top: 50px; }
-        .garage-card { height: 380px; perspective: 1000px; cursor: pointer; }
-        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
-        .garage-card.flipped .card-inner { transform: rotateY(180deg); }
-        .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: white; padding: 15px; box-sizing: border-box; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 4px; }
-        
-        .face-front img { width: 100%; height: 280px; object-fit: cover; }
-        .face-front p { color: #222; font-family: 'Courier New', monospace; font-weight: bold; margin-top: 15px; }
-        
-        /* Tap Indicator */
-        .tap-hint {
-            position: absolute; bottom: 45px; right: 15px; background: rgba(0,0,0,0.6);
-            color: white; font-size: 0.55rem; padding: 4px 8px; border-radius: 4px;
-            backdrop-filter: blur(5px); pointer-events: none; border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .face-back { transform: rotateY(180deg); background: #eee; color: #222; display: flex; flex-direction: column; justify-content: center; text-align: center; }
-        .face-back h3 { font-family: 'Courier New', monospace; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; }
-        .face-back ul { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; line-height: 1.6; }
-
-        /* --- BADGES --- */
-        .badge { display: inline-flex; align-items: center; justify-content: center; font-size: 0.6rem; padding: 2px 8px; border-radius: 50px; margin-left: 5px; font-weight: bold; vertical-align: middle; }
-        .verified { background: #000; color: #ffd700; border: 1px solid #ffd700; }
-        .committee { background: #ff4444; color: white; border: 1px solid #ff4444; }
-
-        /* --- MODAL --- */
-        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); align-items: center; justify-content: center; }
-        .modal-content { background: #111; padding: 30px; border-radius: 8px; width: 90%; max-width: 400px; border: 1px solid #ffd700; text-align: left; position: relative; }
-        .close-btn { position: absolute; top: 15px; right: 20px; cursor: pointer; color: #ffd700; font-weight: bold; }
-        input, textarea { width: 100%; padding: 12px; margin: 10px 0 20px 0; background: #000; border: 1px solid #444; color: white; box-sizing: border-box; border-radius: 4px; font-family: inherit; }
-        .btn-submit { width: 100%; padding: 15px; background: #ffd700; color: black; border: none; font-weight: bold; cursor: pointer; }
-    </style>
-</head>
-<body>
-
-    <nav class="top-nav">
-        <div class="logo">THE CAMBRIAN FORRESTERS<br>MOTOR CLUB</div>
-        <div class="refresh-btn" onclick="resetStack()">RELOAD STACK</div>
-    </nav>
-
-    <section class="page-section">
-        <h1>OWNERS SECTION</h1>
-        <div id="member-counter" style="color:#ffd700; margin-top:-40px; margin-bottom:40px; font-size:0.8rem; letter-spacing:2px; font-weight:bold;"></div>
-
-        <div class="stack-container">
-            <div class="polaroid c1" onclick="this.classList.add('swiped')">
-                <img src="https://images.unsplash.com/photo-1542281286-9e0a16bb7366?w=500">
-                <p>JOIN THE CONVOY</p>
-            </div>
-            <div class="polaroid c2" onclick="this.classList.add('swiped')">
-                <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500">
-                <p>MEMBER INTAKE</p>
-            </div>
-            <div class="polaroid c3" onclick="toggleModal()">
-                <div style="height:240px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:black;">
-                    <h2 style="margin:0; font-size: 3rem;">📸</h2>
-                    <h3 style="margin:0;">SUBMIT RIDE</h3>
-                </div>
-                <p>CLICK TO UPLOAD</p>
-            </div>
-        </div>
-
-        <h2 style="font-family: 'Courier New', monospace; letter-spacing: 2px; margin-top: 80px;">CLUB GARAGE</h2>
-        <div class="garage-grid" id="main-garage"></div>
-    </section>
-
-    <div id="uploadModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="toggleModal()">X</span>
-            <h3 style="color:#ffd700; font-family:'Courier New', monospace; margin-top:0;">MEMBER SUBMISSION</h3>
-            <form action="https://formspree.io/f/YOUR_ID_HERE" method="POST" enctype="multipart/form-data">
-                <input type="text" name="handle" placeholder="Name / Instagram" required>
-                <input type="text" name="car" placeholder="Car Model" required>
-                <textarea name="mods" rows="3" placeholder="Key Modifications"></textarea>
-                <input type="file" name="upload" accept="image/*" required>
-                <button type="submit" class="btn-submit">SUBMIT TO CLUB</button>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        /**
-         * 📝 MEMBER DATABASE
-         * Update this array to manage your garage cards!
-         */
-        const memberData = [
-            {
-                name: "1967 CLASSIC MINI",
-                img: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500",
-                handle: "@Forrester_Admin",
-                verified: true,
-                committee: true,
-                specs: ["1275cc Engine", "Stage 3 Head", "Full Roll Cage", "Safety Harnesses"]
-            },
-            {
-                name: "ESCORT MEXICO",
-                img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500",
-                handle: "@sideways_cam",
-                verified: true,
-                committee: false,
-                specs: ["2.0L Pinto", "Twin Weber 45s", "Atlas Axle", "Forest Arches"]
-            }
-        ];
-
-        // --- RENDER LOGIC ---
-        function renderGarage() {
-            const container = document.getElementById('main-garage');
-            const counter = document.getElementById('member-counter');
-            container.innerHTML = '';
-            counter.innerText = `${memberData.length} REGISTERED CLUB MEMBERS`;
-            
-            memberData.forEach(car => {
-                const specList = car.specs.map(s => `<li>• ${s}</li>`).join('');
-                
-                let roleBadge = '';
-                if (car.committee) roleBadge = `<span class="badge committee">COMMITTEE</span>`;
-                else if (car.verified) roleBadge = `<span class="badge verified">✓ VERIFIED</span>`;
-                
-                container.innerHTML += `
-                    <div class="garage-card" onclick="this.classList.toggle('flipped')">
-                        <div class="card-inner">
-                            <div class="face face-front">
-                                <img src="${car.img}">
-                                <div class="tap-hint">TAP FOR SPECS</div>
-                                <p>${car.name}</p>
-                            </div>
-                            <div class="face face-back">
-                                <h3>BUILD SPECS</h3>
-                                <ul>${specList}</ul>
-                                <div style="margin-top:20px; font-size:0.7rem; color:#666;">
-                                    Owner: ${car.handle} ${roleBadge}
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function resetStack() { document.querySelectorAll('.polaroid').forEach(p => p.classList.remove('swiped')); }
-        function toggleModal() { const m = document.getElementById('uploadModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
-        window.onclick = function(e) { if (e.target == document.getElementById('uploadModal')) toggleModal(); }
-
-        // Start Garage
-        renderGarage();
-    </script>
-</body>
-</html>
+/* --- TICKER SPACING FIX --- */
+.page-section { 
+    padding-top: 240px !important; /* Forces enough space so the ticker never overlaps text */
+    padding-bottom: 60px;
+    max-width: 1200px; 
+    margin: 0 auto; 
+    text-align: center; 
+}
