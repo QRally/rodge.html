@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Cambrian Forresters Motor Club | Members Section</title>
+    <title>The Cambrian Forresters Motor Club | Owners Section</title>
     <style>
         /* --- GLOBAL THEME --- */
         body {
@@ -56,7 +56,6 @@
         }
         .polaroid img, .upload-placeholder { width: 100%; height: 250px; object-fit: cover; pointer-events: none; }
         
-        /* Fixed Placeholder Alignment */
         .upload-placeholder {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: #f0f0f0; color: #222;
@@ -77,8 +76,6 @@
 
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .garage-card.flipped .card-inner { transform: rotateY(180deg); }
-        .garage-card:hover .face { box-shadow: 0 0 25px rgba(255, 215, 0, 0.4); border: 1px solid rgba(255, 215, 0, 0.3); }
-
         .face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: white; padding: 15px; box-sizing: border-box; border-radius: 4px; transition: 0.3s ease; }
         .face-front img { width: 100%; height: 80%; object-fit: cover; }
         .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
@@ -94,11 +91,39 @@
         .verified { background: #000; color: #ffd700; border: 1px solid #ffd700; }
         .committee { background: #ff4444; color: white; }
 
-        /* --- MODAL --- */
-        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); align-items: center; justify-content: center; }
-        .modal-content { background: #111; padding: 35px; border-radius: 10px; width: 90%; max-width: 420px; border: 1px solid #ffd700; text-align: left; }
-        input, textarea { width: 100%; padding: 14px; margin: 12px 0 20px 0; background: #000; border: 1px solid #333; color: white; box-sizing: border-box; }
-        .btn-submit { width: 100%; padding: 16px; background: #ffd700; color: black; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        /* --- MODAL (FIXED) --- */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 9999; /* Higher z-index to stay on top */
+            left: 0; top: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); /* Solid fallback */
+            backdrop-filter: blur(10px); 
+            align-items: center; 
+            justify-content: center; 
+            overflow-y: auto; /* Allow scrolling if screen is small */
+        }
+        .modal-content { 
+            background: #111; 
+            padding: 30px; 
+            border-radius: 12px; 
+            width: 90%; 
+            max-width: 400px; 
+            border: 2px solid #ffd700; 
+            position: relative;
+            margin: auto; /* Centering helper */
+        }
+        input, textarea { 
+            width: 100%; padding: 12px; margin: 10px 0 15px 0; 
+            background: #000; border: 1px solid #444; color: white; 
+            box-sizing: border-box; border-radius: 4px;
+        }
+        input:focus { border-color: #ffd700; outline: none; }
+        .btn-submit { 
+            width: 100%; padding: 16px; background: #ffd700; color: black; 
+            border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; 
+            border-radius: 4px; margin-top: 10px;
+        }
 
         /* --- FOOTER --- */
         .club-footer { background: rgba(0, 0, 0, 0.8); border-top: 1px solid rgba(255, 215, 0, 0.2); padding: 60px 20px; text-align: center; margin-top: 100px; }
@@ -124,12 +149,12 @@
 
         <div class="stack-container">
             <div class="polaroid c1" onclick="this.classList.add('swiped')">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/69/48/6948ab01-fe8d-4b69-b072-974e4051c100.png">
+                <img src="https://images.unsplash.com/photo-1542281286-9e0a16bb7366?w=600">
                 <p>JOIN THE CONVOY</p>
             </div>
             <div class="polaroid c2" onclick="this.classList.add('swiped')">
-                <img src="https://files.websitebuilder.prositehosting.co.uk/11/db/11dbbfb6-fa92-409d-acb3-f955143a8303.png">
-                <p>MEMBER</p>
+                <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600">
+                <p>MEMBER INTAKE</p>
             </div>
             <div class="polaroid c3" onclick="toggleModal()">
                 <div class="upload-placeholder">
@@ -151,14 +176,22 @@
 
     <div id="uploadModal" class="modal">
         <div class="modal-content">
-            <h2 style="color:#ffd700; font-family:'Courier New', monospace; margin-top:0;">MEMBER LOGBOOK</h2>
+            <h2 style="color:#ffd700; font-family:'Courier New', monospace; margin-top:0; text-align:center;">MEMBER LOGBOOK</h2>
             <form action="https://formspree.io/f/YOUR_ID_HERE" method="POST" enctype="multipart/form-data">
-                <input type="text" name="handle" placeholder="NAME / INSTAGRAM" required>
-                <input type="text" name="car" placeholder="CAR MODEL" required>
-                <textarea name="mods" rows="3" placeholder="LIST MODIFICATIONS"></textarea>
-                <input type="file" name="upload" accept="image/*" required>
+                <label style="font-size:0.7rem; color:#888;">NAME / INSTAGRAM</label>
+                <input type="text" name="handle" placeholder="@username" required>
+                
+                <label style="font-size:0.7rem; color:#888;">CAR MODEL</label>
+                <input type="text" name="car" placeholder="e.g. Ford Escort Mk2" required>
+                
+                <label style="font-size:0.7rem; color:#888;">LIST MODIFICATIONS</label>
+                <textarea name="mods" rows="3" placeholder="Engine, Suspension, etc."></textarea>
+                
+                <label style="font-size:0.7rem; color:#888;">PHOTO UPLOAD</label>
+                <input type="file" name="upload" accept="image/*" required style="border:none; padding:10px 0;">
+                
                 <button type="submit" class="btn-submit">SEND TO COMMITTEE</button>
-                <p onclick="toggleModal()" style="text-align:center; color:#666; cursor:pointer; margin-top:15px; font-size:0.8rem;">CANCEL</p>
+                <p onclick="toggleModal()" style="text-align:center; color:#ffd700; cursor:pointer; margin-top:15px; font-size:0.8rem; text-decoration:underline;">CANCEL</p>
             </form>
         </div>
     </div>
@@ -182,7 +215,7 @@
         const memberData = [
             {
                 name: "1967 CLASSIC MINI",
-                img: "https://files.websitebuilder.prositehosting.co.uk/7c/8a/7c8a5d58-6a3a-4621-bca3-b54e464fe92e.png",
+                img: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800",
                 handle: "@Forrester_Admin",
                 verified: true,
                 committee: true,
@@ -191,7 +224,7 @@
             },
             {
                 name: "PORSCHE PANAMERA",
-                img: "https://files.websitebuilder.prositehosting.co.uk/a0/ac/a0acd9e0-3144-41fa-ac7b-0f4912dd9cde.jpg",
+                img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600",
                 handle: "@Panamera_Turbo",
                 verified: true,
                 committee: false,
@@ -237,7 +270,15 @@
         }
 
         function resetStack() { document.querySelectorAll('.polaroid').forEach(p => p.classList.remove('swiped')); }
-        function toggleModal() { const m = document.getElementById('uploadModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
+        
+        function toggleModal() { 
+            const m = document.getElementById('uploadModal'); 
+            const isVisible = (m.style.display === 'flex');
+            m.style.display = isVisible ? 'none' : 'flex'; 
+            
+            // Prevent background scrolling when modal is open
+            document.body.style.overflow = isVisible ? 'auto' : 'hidden';
+        }
         
         init();
     </script>
