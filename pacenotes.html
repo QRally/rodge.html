@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>QRally Pacenotes Pro</title>
+    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -15,60 +16,56 @@
         }
 
         body { font-family: sans-serif; background: var(--dark-bg); color: white; margin: 0; padding: 10px; display: flex; justify-content: center; }
-        #app-interface { width: 100%; max-width: 440px; background: var(--card-bg); padding: 20px; border-radius: 24px; border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.6); position: relative; }
+        #app-interface { width: 100%; max-width: 440px; background: var(--card-bg); padding: 15px; border-radius: 24px; border: 1px solid #333; }
         
-        .header-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        input#stage-name { 
-            flex-grow: 1; background: #000; border: 1px solid #444; color: var(--yellow); 
-            padding: 12px; border-radius: 10px; font-family: var(--handwriting); font-size: 1.2rem;
-        }
-
+        /* Preview Window with Speedometer */
         #preview-window { 
-            background: #000; border-radius: 15px; min-height: 90px; margin-bottom: 20px;
+            background: #000; border-radius: 15px; min-height: 100px; margin-bottom: 15px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-family: var(--handwriting); color: var(--yellow); padding: 15px; text-align: center;
-            border: 2px solid #333; transition: all 0.2s;
+            border: 2px solid #333; position: relative;
         }
-        #display-text { font-size: 2rem; }
-        #log-counter { font-size: 0.75rem; color: #555; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        #speedometer { font-size: 0.8rem; color: #444; position: absolute; top: 8px; font-family: sans-serif; }
+        #display-text { font-size: 2rem; margin-top: 10px; }
 
-        .grid { display: grid; gap: 10px; margin-bottom: 12px; }
+        /* Grid Layouts */
+        .grid { display: grid; gap: 8px; margin-bottom: 10px; }
         .cols-2 { grid-template-columns: 1fr 1fr; }
         .cols-4 { grid-template-columns: repeat(4, 1fr); }
         .cols-6 { grid-template-columns: repeat(6, 1fr); }
 
-        button { 
-            padding: 18px 0; font-size: 1.2rem; font-weight: bold; cursor: pointer;
-            border-radius: 12px; border: 1px solid #444; background: var(--btn-bg); color: white;
-            transition: 0.1s; touch-action: manipulation;
+        /* Utility Buttons Row (The Fix) */
+        .footer-grid { 
+            display: flex; 
+            justify-content: space-between; 
+            gap: 5px; 
+            margin-top: 10px; 
         }
-        button:active { background: #444; transform: scale(0.96); }
-        .btn-dir { border: 2px solid var(--yellow); color: var(--yellow); font-size: 1.6rem; }
-        .btn-dist { background: var(--yellow); color: black; border: none; font-size: 1.3rem; }
-        .btn-desc { background: #333; font-size: 0.85rem; color: #bbb; border: 1px solid #444; }
-        .btn-sym { color: var(--yellow); font-size: 1.4rem; }
+        .btn-util { 
+            flex: 1;
+            font-size: 0.65rem; 
+            padding: 12px 2px; 
+            border: none; 
+            border-radius: 8px;
+            font-weight: bold;
+            min-width: 0; /* Prevents overflow */
+            text-align: center;
+        }
 
-        .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
-        .btn-util { font-size: 0.7rem; padding: 12px 0; border: none; font-weight: bold; }
-
-        /* Branding Footer */
-        .brand-footer { margin-top: 25px; padding-top: 15px; border-top: 1px solid #333; text-align: center; font-size: 0.7rem; color: #666; letter-spacing: 1px; text-transform: uppercase; }
+        button { cursor: pointer; transition: 0.1s; touch-action: manipulation; }
+        button:active { transform: scale(0.95); opacity: 0.8; }
+        
+        .btn-dir { border: 2px solid var(--yellow); color: var(--yellow); background: var(--btn-bg); height: 60px; font-size: 1.5rem; }
+        .btn-num { background: var(--btn-bg); color: white; height: 50px; }
+        .btn-desc { background: #333; color: #bbb; height: 45px; font-size: 0.8rem; border: 1px solid #444; }
+        .btn-dist { background: var(--yellow); color: black; border: none; height: 55px; font-size: 1.2rem; }
 
         /* PRINT STYLES */
         @media print {
-            @page { size: A4; margin: 1cm; }
-            body { background: white !important; color: black !important; }
             #app-interface { display: none !important; }
-            #print-area { display: block !important; width: 100%; font-family: var(--handwriting); }
-            .print-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 3px solid black; margin-bottom: 20px; padding-bottom: 10px; }
-            .print-header h1 { margin: 0; font-size: 28pt; }
-            .note-grid { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid #ccc; }
-            .note-box { 
-                height: 140px; border-bottom: 2px solid black; border-right: 1px solid #eee;
-                display: flex; flex-direction: column; justify-content: center;
-                padding: 10px; text-align: center; font-size: 20pt; line-height: 1.2;
-            }
-            .note-box:nth-child(5n) { border-right: none; }
+            #print-area { display: block !important; font-family: var(--handwriting); }
+            .note-grid { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 2px solid black; }
+            .note-box { height: 140px; border-bottom: 2px solid black; border-right: 1px solid #eee; text-align: center; display: flex; flex-direction: column; justify-content: center; font-size: 18pt; }
         }
         #print-area { display: none; }
     </style>
@@ -76,147 +73,118 @@
 <body>
 
 <div id="app-interface">
-    <div class="header-row">
-        <input type="text" id="stage-name" placeholder="STAGE NAME / NO.">
-    </div>
+    <div class="grid"><input type="text" id="stage-name" placeholder="STAGE NAME / NO." style="background:#000; color:var(--yellow); border:1px solid #444; padding:12px; border-radius:10px; font-family:var(--handwriting); font-size:1.2rem;"></div>
 
     <div id="preview-window">
+        <div id="speedometer">GPS: OFF</div>
         <span id="display-text">...</span>
-        <span id="log-counter">0 CALLS RECORDED</span>
+        <span id="log-counter" style="font-size:0.7rem; color:#555; margin-top:5px;">0 CALLS RECORDED</span>
     </div>
 
-    <div class="grid cols-2">
-        <button class="btn-dir" onclick="tap('L')">L</button>
-        <button class="btn-dir" onclick="tap('R')">R</button>
-    </div>
-
+    <div class="grid cols-2"><button class="btn-dir" onclick="tap('L')">L</button><button class="btn-dir" onclick="tap('R')">R</button></div>
     <div class="grid cols-6">
-        <button onclick="tap('6')">6</button>
-        <button onclick="tap('5')">5</button>
-        <button onclick="tap('4')">4</button>
-        <button onclick="tap('3')">3</button>
-        <button onclick="tap('2')">2</button>
-        <button onclick="tap('1')">1</button>
+        <button class="btn-num" onclick="tap('6')">6</button><button class="btn-num" onclick="tap('5')">5</button>
+        <button class="btn-num" onclick="tap('4')">4</button><button class="btn-num" onclick="tap('3')">3</button>
+        <button class="btn-num" onclick="tap('2')">2</button><button class="btn-num" onclick="tap('1')">1</button>
     </div>
 
     <div class="grid cols-4">
-        <button class="btn-desc" onclick="tap('Crest')">Crest</button>
-        <button class="btn-desc" onclick="tap('Into')">Into</button>
-        <button class="btn-desc btn-sym" onclick="tap('>')">></button>
-        <button class="btn-desc btn-sym" onclick="tap('<')"><</button>
-        <button class="btn-desc" onclick="tap('D.Cut')">D.Cut</button>
-        <button class="btn-desc" onclick="tap('Jump')">Jump</button>
-        <button class="btn-desc" onclick="tap('Slippy')">Slippy</button>
-        <button class="btn-desc" onclick="tap('Care')">Care</button>
+        <button class="btn-desc" onclick="tap('Crest')">Crest</button><button class="btn-desc" onclick="tap('Into')">Into</button>
+        <button class="btn-desc" style="color:var(--yellow); font-size:1.2rem;" onclick="tap('>')">></button>
+        <button class="btn-desc" style="color:var(--yellow); font-size:1.2rem;" onclick="tap('<')"><</button>
     </div>
 
     <div class="grid cols-4">
-        <button class="btn-dist" onclick="tap('50', true)">50</button>
-        <button class="btn-dist" onclick="tap('100', true)">100</button>
-        <button class="btn-dist" onclick="tap('200', true)">200</button>
-        <button class="btn-dist" onclick="tap('300', true)">300</button>
+        <button class="btn-dist" onclick="tap('50', true)">50</button><button class="btn-dist" onclick="tap('100', true)">100</button>
+        <button class="btn-dist" onclick="tap('200', true)">200</button><button class="btn-dist" onclick="tap('300', true)">300</button>
     </div>
 
     <div class="footer-grid">
         <button class="btn-util" style="background:#422; color:#f99" onclick="undo()">UNDO</button>
+        <button class="btn-util" id="recce-btn" style="background:#424; color:#f9f" onclick="toggleRecceMode()">RECCE</button>
         <button class="btn-util" style="background:#555; color:#fff" onclick="clearStage()">CLEAR</button>
         <button class="btn-util" style="background:#224; color:#99f" onclick="downloadBackup()">TXT</button>
         <button class="btn-util" style="background:#242; color:#9f9" onclick="doPrint()">PRINT</button>
     </div>
 
-    <div class="brand-footer">
-        QRally Pacenotes by RODGE | Build v1.0.5
+    <div style="margin-top:15px; padding-top:10px; border-top:1px solid #333; text-align:center; font-size:0.65rem; color:#666;">
+        QRally Pacenotes by RODGE | Build v1.0.7
     </div>
 </div>
 
 <div id="print-area">
-    <div class="print-header">
-        <h1 id="print-title">STAGE NOTES</h1>
-        <span id="print-date" style="font-size: 14pt;"></span>
+    <div style="display:flex; justify-content:space-between; border-bottom:2px solid black; padding-bottom:5px; margin-bottom:20px;">
+        <h1 id="print-title" style="margin:0;">STAGE NOTES</h1>
+        <span id="print-date"></span>
     </div>
     <div id="print-rows" class="note-grid"></div>
 </div>
 
 <script>
-    let currentBuffer = [];
-    let savedNotes = [];
+    let currentBuffer = []; let savedNotes = []; let watchID = null;
 
     function tap(val, isFinal = false) {
         currentBuffer.push(val);
-        if (isFinal) {
-            save();
-        } else {
-            updateDisplay();
-        }
+        if (isFinal) { save(); } else { updateDisplay(); }
     }
 
     function updateDisplay() {
-        const display = document.getElementById('display-text');
-        display.innerText = currentBuffer.length > 0 ? currentBuffer.join(" ") : "...";
+        document.getElementById('display-text').innerText = currentBuffer.length > 0 ? currentBuffer.join(" ") : "...";
     }
 
     function save() {
         if (currentBuffer.length === 0) return;
         savedNotes.push(currentBuffer.join(" "));
-        currentBuffer = [];
-        updateDisplay();
+        currentBuffer = []; updateDisplay();
         document.getElementById('log-counter').innerText = `${savedNotes.length} CALLS RECORDED`;
-        
-        const win = document.getElementById('preview-window');
-        win.style.background = "#062206";
-        setTimeout(() => { win.style.background = "#000"; }, 150);
+    }
+
+    function toggleRecceMode() {
+        const speedEl = document.getElementById('speedometer');
+        const btn = document.getElementById('recce-btn');
+        if (watchID === null) {
+            if ("geolocation" in navigator) {
+                watchID = navigator.geolocation.watchPosition((pos) => {
+                    if (pos.coords.speed !== null) {
+                        const mph = Math.round(pos.coords.speed * 2.237);
+                        speedEl.innerText = `SPEED: ${mph} MPH`;
+                        speedEl.style.color = "var(--yellow)";
+                    }
+                }, null, { enableHighAccuracy: true });
+                btn.style.boxShadow = "0 0 10px #f9f";
+            }
+        } else {
+            navigator.geolocation.clearWatch(watchID); watchID = null;
+            speedEl.innerText = "GPS: OFF"; speedEl.style.color = "#444";
+            btn.style.boxShadow = "none";
+        }
     }
 
     function undo() {
-        if (currentBuffer.length > 0) {
-            currentBuffer.pop();
-        } else if (savedNotes.length > 0) {
-            currentBuffer = savedNotes.pop().split(" ");
-        }
+        if (currentBuffer.length > 0) { currentBuffer.pop(); } 
+        else if (savedNotes.length > 0) { currentBuffer = savedNotes.pop().split(" "); }
         updateDisplay();
-        document.getElementById('log-counter').innerText = `${savedNotes.length} CALLS RECORDED`;
     }
 
-    function clearStage() {
-        if(confirm("Wipe all notes for this stage?")) {
-            savedNotes = [];
-            currentBuffer = [];
-            document.getElementById('stage-name').value = "";
-            updateDisplay();
-            document.getElementById('log-counter').innerText = "0 CALLS RECORDED";
-        }
-    }
+    function clearStage() { if(confirm("Clear stage?")) { savedNotes = []; currentBuffer = []; updateDisplay(); } }
 
     function downloadBackup() {
-        const name = document.getElementById('stage-name').value || 'stage-notes';
-        const content = savedNotes.join('\n');
-        const blob = new Blob([content], { type: 'text/plain' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `${name}.txt`;
-        a.click();
+        const blob = new Blob([savedNotes.join('\n')], { type: 'text/plain' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = "notes.txt"; a.click();
     }
 
     function doPrint() {
-        if (savedNotes.length === 0 && currentBuffer.length === 0) return alert("Add notes first!");
         if (currentBuffer.length > 0) save();
-
-        const name = document.getElementById('stage-name').value;
-        document.getElementById('print-title').innerText = name || "STAGE NOTES";
         document.getElementById('print-date').innerText = new Date().toLocaleDateString();
-
         const container = document.getElementById('print-rows');
         container.innerHTML = "";
-        
         savedNotes.forEach(note => {
-            const box = document.createElement('div');
-            box.className = 'note-box';
-            box.innerText = note;
-            container.appendChild(box);
+            const box = document.createElement('div'); box.className = 'note-box';
+            box.innerText = note; container.appendChild(box);
         });
         window.print();
     }
 </script>
-
 </body>
 </html>
