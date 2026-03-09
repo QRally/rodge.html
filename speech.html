@@ -5,83 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>QRally Pro - Voice Capture</title>
     <style>
-        /* Theme: QRally Pro Night Mode */
         body { 
             background: #1a1a1a; color: #ffcc00; font-family: sans-serif; 
             display: flex; flex-direction: column; align-items: center; 
             padding: 20px; min-height: 100vh; margin: 0;
-            user-select: none; -webkit-user-select: none; /* Prevents text selection on hold */
+            user-select: none; -webkit-user-select: none;
         }
-        
         .voice-card { 
             background: #222; border: 2px solid #333; border-radius: 16px; 
             padding: 25px; width: 90%; max-width: 400px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        
         #transcript-display { 
             background: #000; color: #fff; min-height: 80px; padding: 15px; 
-            margin: 20px 0; border-radius: 12px; border: 1px solid #444; 
-            font-style: italic; display: flex; align-items: center; justify-content: center;
+            margin: 20px 0; border-radius: 12px; border: 1px solid #444; font-style: italic;
         }
-
         .ptt-btn { 
             width: 120px; height: 120px; border-radius: 50%; border: none;
             background: #444; color: white; font-weight: bold;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5); transition: all 0.1s ease;
-            cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); transition: 0.1s;
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
         }
-        
-        /* Visual feedback for the active state */
-        .ptt-btn.active { 
-            background: #b30000; transform: scale(0.95); 
-            box-shadow: 0 0 30px #ff4d4d; 
-        }
-        
-        .status-text { font-size: 0.8rem; color: #888; margin-top: 15px; text-transform: uppercase; }
-
-        /* Notes History Section */
-        #notes-container { width: 95%; max-width: 420px; margin-top: 30px; }
-        .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
-        
-        .clear-btn { background: none; border: 1px solid #444; color: #888; cursor: pointer; font-size: 0.7rem; padding: 5px 12px; border-radius: 4px; }
-
+        .ptt-btn.active { background: #b30000; transform: scale(0.95); box-shadow: 0 0 30px #ff4d4d; }
+        .status-text { font-size: 0.8rem; color: #888; margin-top: 15px; }
+        #history-list { width: 95%; max-width: 420px; margin-top: 20px; }
         .note-item { 
-            background: #262626; margin-bottom: 12px; padding: 15px; border-radius: 10px; 
-            border-left: 5px solid #ffcc00; color: #eee; display: flex; flex-direction: column; gap: 10px;
+            background: #262626; margin-bottom: 10px; padding: 12px; border-radius: 8px; 
+            border-left: 4px solid #ffcc00; color: #eee; display: flex; justify-content: space-between;
         }
-
-        .note-actions { display: flex; gap: 8px; align-self: flex-end; }
-        
-        .action-btn { 
-            background: #333; color: #ffcc00; border: none; padding: 6px 12px; 
-            border-radius: 6px; cursor: pointer; font-size: 0.7rem; font-weight: bold;
-        }
-        .action-btn.delete { color: #888; }
+        .action-btn { background: #333; color: #ffcc00; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; }
     </style>
 </head>
 <body>
 
     <div class="voice-card">
-        <h2 style="margin: 0;">QRALLY PRO</h2>
-        <p style="font-size: 0.7rem; color: #666;">VOICE CAPTURE SYSTEM</p>
-        
-        <div id="transcript-display">Hold button to speak...</div>
-        
+        <h2>QRALLY PRO</h2>
+        <div id="transcript-display">Hold button and speak clearly...</div>
         <button id="mic-btn" class="ptt-btn">HOLD<br>TO TALK</button>
-        
         <div class="status-text" id="status">System: Ready</div>
     </div>
 
-    <div id="notes-container">
-        <div class="history-header">
-            <span style="font-weight: bold; color: #888;">SAVED LOGS</span>
-            <button class="clear-btn" onclick="clearAllNotes()">CLEAR ALL</button>
-        </div>
-        <div id="history-list"></div>
-    </div>
+    <div id="history-list"></div>
 
     <script>
         const micBtn = document.getElementById('mic-btn');
@@ -90,123 +53,91 @@
         const historyList = document.getElementById('history-list');
 
         let isListening = false;
+        let finalOutput = ""; 
         let savedNotes = JSON.parse(localStorage.getItem('qrally_notes')) || [];
 
-        // 1. Initialize Speech Recognition
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        
-        if (!SpeechRecognition) {
-            display.innerText = "Speech API Not Supported.";
-        } else {
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'en-GB';
-            recognition.continuous = true; // Keep listening while button is held
-            recognition.interimResults = true;
+        const recognition = new SpeechRecognition();
 
-            const startProcess = (e) => {
-                e.preventDefault();
-                if (isListening) return;
-                
-                // Mobile Haptic Feedback (A short 40ms buzz)
-                if (navigator.vibrate) navigator.vibrate(40);
+        // MOBILE FIX: Set continuous to FALSE for faster result processing on Android
+        recognition.continuous = false; 
+        recognition.interimResults = true;
+        recognition.lang = 'en-GB';
 
-                isListening = true;
-                micBtn.classList.add('active');
-                status.innerText = "System: LISTENING...";
-                display.innerText = "Listening...";
-                
-                try { recognition.start(); } catch(err) {}
-            };
-
-            const stopProcess = (e) => {
-                if (e) e.preventDefault();
-                if (!isListening) return;
-                
-                isListening = false;
-                micBtn.classList.remove('active');
-                status.innerText = "System: PROCESSING...";
-                recognition.stop();
-            };
-
-            // Event Listeners for cross-device support
-            micBtn.addEventListener('mousedown', startProcess);
-            micBtn.addEventListener('mouseup', stopProcess);
-            micBtn.addEventListener('mouseleave', stopProcess); // Stops if mouse slides off
+        const startProcess = (e) => {
+            e.preventDefault();
+            if (isListening) return;
             
-            micBtn.addEventListener('touchstart', startProcess);
-            micBtn.addEventListener('touchend', stopProcess);
+            if (navigator.vibrate) navigator.vibrate(50);
+            
+            isListening = true;
+            finalOutput = ""; // Reset for new recording
+            micBtn.classList.add('active');
+            status.innerText = "System: LISTENING...";
+            display.innerText = "...";
+            
+            try { recognition.start(); } catch(err) {}
+        };
 
-            recognition.onresult = (event) => {
-                let interim = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        saveNote(event.results[i][0].transcript);
-                    } else {
-                        interim += event.results[i][0].transcript;
-                    }
+        const stopProcess = (e) => {
+            if (e) e.preventDefault();
+            if (!isListening) return;
+            
+            isListening = false;
+            micBtn.classList.remove('active');
+            status.innerText = "System: PROCESSING...";
+            recognition.stop();
+        };
+
+        // Event Listeners
+        micBtn.addEventListener('touchstart', startProcess);
+        micBtn.addEventListener('touchend', stopProcess);
+        micBtn.addEventListener('mousedown', startProcess);
+        micBtn.addEventListener('mouseup', stopProcess);
+
+        recognition.onresult = (event) => {
+            let interim = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                let text = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalOutput = text;
+                } else {
+                    interim += text;
                 }
-                if (interim) display.innerText = interim;
-            };
+            }
+            display.innerText = finalOutput || interim || "Listening...";
+        };
 
-            recognition.onspeechend = () => { status.innerText = "System: READY"; };
-            
-            recognition.onerror = (e) => { 
-                status.innerText = "Error: " + e.error; 
-                isListening = false;
-                micBtn.classList.remove('active');
-            };
-        }
+        recognition.onend = () => {
+            if (finalOutput.trim() !== "") {
+                saveNote(finalOutput);
+                finalOutput = ""; 
+            }
+            status.innerText = "System: Ready";
+        };
 
-        // 2. Data Management
         function saveNote(text) {
-            if (!text.trim()) return;
             savedNotes.push(text);
             localStorage.setItem('qrally_notes', JSON.stringify(savedNotes));
             renderNotes();
-            display.innerText = "Log Saved.";
         }
 
-        function deleteNote(index) {
-            savedNotes.splice(index, 1);
-            localStorage.setItem('qrally_notes', JSON.stringify(savedNotes));
-            renderNotes();
-        }
-
-        function clearAllNotes() {
-            if (confirm("Wipe all logs?")) {
-                savedNotes = [];
-                localStorage.removeItem('qrally_notes');
-                renderNotes();
-            }
-        }
-
-        function copyToClipboard(text, btn) {
-            navigator.clipboard.writeText(text).then(() => {
-                const oldText = btn.innerText;
-                btn.innerText = "COPIED!";
-                setTimeout(() => btn.innerText = oldText, 2000);
-            });
-        }
-
-        // 3. UI Rendering
         function renderNotes() {
             historyList.innerHTML = '';
             [...savedNotes].reverse().forEach((note, i) => {
-                const actualIndex = savedNotes.length - 1 - i;
-                const noteEl = document.createElement('div');
-                noteEl.className = 'note-item';
-                noteEl.innerHTML = `
-                    <span>${note}</span>
-                    <div class="note-actions">
-                        <button class="action-btn" onclick="copyToClipboard('${note.replace(/'/g, "\\'")}', this)">COPY</button>
-                        <button class="action-btn delete" onclick="deleteNote(${actualIndex})">DELETE</button>
-                    </div>
-                `;
-                historyList.appendChild(noteEl);
+                const div = document.createElement('div');
+                div.className = 'note-item';
+                div.innerHTML = `<span>${note}</span> <button class="action-btn" onclick="copyNote('${note.replace(/'/g, "\\'")}')">COPY</button>`;
+                historyList.appendChild(div);
             });
         }
 
-        renderNotes(); // Load history on startup
+        window.copyNote = (text) => {
+            navigator.clipboard.writeText(text);
+            alert("Copied to clipboard!");
+        };
+
+        renderNotes();
     </script>
 </body>
 </html>
