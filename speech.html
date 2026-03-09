@@ -1,1 +1,214 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRally Pro - Voice Notes</title>
+    <style>
+        /* Theme: QRally Pro Night Mode */
+        body { 
+            background: #1a1a1a; color: #ffcc00; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; margin: 0;
+        }
+        
+        .voice-card { 
+            background: #222; border: 2px solid #333; border-radius: 16px; 
+            padding: 25px; width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        #transcript-display { 
+            background: #000; color: #fff; min-height: 80px; padding: 15px; 
+            margin: 20px 0; border-radius: 12px; border: 1px solid #444; 
+            font-style: italic; display: flex; align-items: center; justify-content: center;
+        }
+
+        .ptt-btn { 
+            width: 110px; height: 110px; border-radius: 50%; border: none;
+            background: #444; color: white; font-weight: bold;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); transition: all 0.2s ease;
+            cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none;
+        }
+        
+        .ptt-btn.active { background: #b30000; transform: scale(0.92); box-shadow: 0 0 25px #ff4d4d; }
+        
+        .status-text { font-size: 0.85rem; color: #888; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Notes History Section */
+        #notes-container { width: 95%; max-width: 420px; margin-top: 30px; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
+        
+        .clear-btn { background: none; border: 1px solid #444; color: #888; cursor: pointer; font-size: 0.7rem; padding: 5px 12px; border-radius: 4px; transition: 0.2s; }
+        .clear-btn:hover { color: #ff4d4d; border-color: #ff4d4d; }
+
+        .note-item { 
+            background: #262626; margin-bottom: 12px; padding: 15px; border-radius: 10px; 
+            border-left: 5px solid #ffcc00; color: #eee; display: flex; flex-direction: column; gap: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .note-actions { display: flex; gap: 8px; align-self: flex-end; }
+        
+        .action-btn { 
+            background: #333; color: #ffcc00; border: none; padding: 6px 12px; 
+            border-radius: 6px; cursor: pointer; font-size: 0.7rem; font-weight: bold; transition: 0.2s;
+        }
+        .action-btn.delete { color: #888; }
+        .action-btn.delete:hover { background: #451a1a; color: #ff4d4d; }
+    </style>
+</head>
+<body>
+
+    <div class="voice-card">
+        <h2 style="margin: 0; letter-spacing: 2px;">QRALLY PRO</h2>
+        <p style="font-size: 0.7rem; color: #666; margin-bottom: 20px;">VOICE CAPTURE SYSTEM</p>
+        
+        <div id="transcript-display">Hold button to speak...</div>
+        
+        <button id="mic-btn" class="ptt-btn">HOLD<br>TO TALK</button>
+        
+        <div class="status-text" id="status">System: Ready</div>
+    </div>
+
+    <div id="notes-container">
+        <div class="history-header">
+            <span style="font-weight: bold; color: #888; font-size: 0.8rem;">SAVED LOGS</span>
+            <button class="clear-btn" onclick="clearAllNotes()">CLEAR ALL</button>
+        </div>
+        <div id="history-list"></div>
+    </div>
+
+    <script>
+        const micBtn = document.getElementById('mic-btn');
+        const display = document.getElementById('transcript-display');
+        const status = document.getElementById('status');
+        const historyList = document.getElementById('history-list');
+
+        // State & Storage
+        let isListening = false;
+        let savedNotes = JSON.parse(localStorage.getItem('qrally_notes')) || [];
+
+        // 1. Initialize Speech Recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+            display.innerText = "Browser not supported.";
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-GB';
+            recognition.continuous = false; 
+            recognition.interimResults = true;
+
+            // Start Logic
+            const startProcess = (e) => {
+                e.preventDefault();
+                if (isListening) return;
+                isListening = true;
+                micBtn.classList.add('active');
+                status.innerText = "System: LISTENING...";
+                try { recognition.start(); } catch(e) {}
+            };
+
+            // Stop Logic
+            const stopProcess = () => {
+                if (!isListening) return;
+                isListening = false;
+                micBtn.classList.remove('active');
+                status.innerText = "System: PROCESSING...";
+                recognition.stop();
+            };
+
+            // Event Listeners for Mobile & Desktop
+            micBtn.addEventListener('mousedown', startProcess);
+            micBtn.addEventListener('mouseup', stopProcess);
+            micBtn.addEventListener('touchstart', startProcess);
+            micBtn.addEventListener('touchend', stopProcess);
+
+            recognition.onresult = (event) => {
+                let interim = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        saveNote(event.results[i][0].transcript);
+                    } else {
+                        interim += event.results[i][0].transcript;
+                    }
+                }
+                display.innerText = interim || "Transcribing...";
+            };
+
+            recognition.onspeechend = () => { status.innerText = "System: READY"; };
+            recognition.onerror = (e) => { 
+                status.innerText = "Error: " + e.error; 
+                isListening = false;
+                micBtn.classList.remove('active');
+            };
+        }
+
+        // 2. Note Management
+        function saveNote(text) {
+            if (!text.trim()) return;
+            savedNotes.push(text);
+            updateStorage();
+            renderNotes();
+            display.innerText = "Saved!";
+        }
+
+        function deleteNote(index) {
+            savedNotes.splice(index, 1);
+            updateStorage();
+            renderNotes();
+        }
+
+        function clearAllNotes() {
+            if (confirm("Wipe all saved logs?")) {
+                savedNotes = [];
+                updateStorage();
+                renderNotes();
+            }
+        }
+
+        function updateStorage() {
+            localStorage.setItem('qrally_notes', JSON.stringify(savedNotes));
+        }
+
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = "COPIED!";
+                btn.style.background = "#ffcc00";
+                btn.style.color = "#000";
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = "#333";
+                    btn.style.color = "#ffcc00";
+                }, 1500);
+            });
+        }
+
+        // 3. UI Rendering
+        function renderNotes() {
+            historyList.innerHTML = '';
+            // Render in reverse so newest is on top
+            [...savedNotes].reverse().forEach((note, i) => {
+                const actualIndex = savedNotes.length - 1 - i;
+                const noteEl = document.createElement('div');
+                noteEl.className = 'note-item';
+                noteEl.innerHTML = `
+                    <span>${note}</span>
+                    <div class="note-actions">
+                        <button class="action-btn" onclick="copyToClipboard('${note.replace(/'/g, "\\'")}', this)">COPY</button>
+                        <button class="action-btn delete" onclick="deleteNote(${actualIndex})">DELETE</button>
+                    </div>
+                `;
+                historyList.appendChild(noteEl);
+            });
+        }
+
+        // Initial Load
+        renderNotes();
+    </script>
+</body>
+</html>
