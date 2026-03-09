@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QRally Pro</title>
+    <title>QRally Pro - Fix</title>
     <style>
         body { 
             background: #1a1a1a; color: #ffcc00; font-family: sans-serif; 
@@ -14,158 +14,112 @@
         .voice-card { 
             background: #222; border: 2px solid #333; border-radius: 16px; 
             padding: 25px; width: 90%; max-width: 400px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         #transcript-display { 
-            background: #000; color: #fff; min-height: 120px; padding: 15px; 
-            margin: 20px 0; border-radius: 12px; border: 1px solid #444; 
-            font-style: italic; overflow-y: auto; text-align: left;
-            font-size: 1.1rem; line-height: 1.4;
+            background: #000; color: #fff; min-height: 100px; padding: 15px; 
+            margin: 20px 0; border-radius: 12px; border: 1px solid #444; font-style: italic;
         }
         .ptt-btn { 
-            width: 150px; height: 150px; border-radius: 50%; border: 6px solid #333;
-            background: #444; color: white; font-weight: bold; font-size: 1.2rem;
-            transition: all 0.1s ease; cursor: pointer;
-            -webkit-tap-highlight-color: transparent; outline: none;
+            width: 140px; height: 140px; border-radius: 50%; border: none;
+            background: #444; color: white; font-weight: bold;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); transition: 0.1s;
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
         }
+        
+        /* Pulse Animation when active */
         .ptt-btn.active { 
-            background: #ff0000; border-color: #ff6666;
-            transform: scale(0.94); box-shadow: 0 0 50px #ff0000;
+            background: #ff0000; 
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 30px #ff0000; 
         }
-        .status-text { font-size: 0.9rem; color: #888; margin-top: 20px; font-weight: bold; letter-spacing: 1px; }
-        #history-list { width: 95%; max-width: 420px; margin-top: 20px; }
-        .note-item { 
-            background: #262626; margin-bottom: 10px; padding: 15px; border-radius: 8px; 
-            border-left: 5px solid #ffcc00; color: #eee; display: flex; 
-            justify-content: space-between; align-items: center;
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(255, 0, 0, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
         }
-        .copy-btn { background: #444; color: #ffcc00; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+
+        #status { font-size: 0.8rem; color: #888; margin-top: 15px; font-weight: bold; }
+        #debug { color: #ff4444; font-size: 0.7rem; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div class="voice-card">
-        <h1 style="margin: 0 0 10px 0; font-size: 1.8rem;">QRALLY PRO</h1>
-        <div id="transcript-display">Press and hold to record...</div>
-        
+        <h2>QRALLY PRO</h2>
+        <div id="transcript-display">Hold to speak...</div>
         <button id="mic-btn" class="ptt-btn">PUSH<br>TO TALK</button>
-        
-        <div class="status-text" id="status">STATUS: READY</div>
+        <div id="status">System: Ready</div>
+        <div id="debug"></div>
     </div>
-
-    <div id="history-list"></div>
 
     <script>
         const micBtn = document.getElementById('mic-btn');
         const display = document.getElementById('transcript-display');
         const status = document.getElementById('status');
-        const historyList = document.getElementById('history-list');
+        const debug = document.getElementById('debug');
 
-        let isListening = false;
-        let savedNotes = JSON.parse(localStorage.getItem('qrally_notes')) || [];
-
-        // Setup API
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            status.innerText = "ERROR: BROWSER NOT SUPPORTED";
+        let recognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                let str = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    str += event.results[i][0].transcript;
+                }
+                display.innerText = str;
+            };
+
+            recognition.onerror = (event) => {
+                if (event.error === 'not-allowed') {
+                    debug.innerText = "CRITICAL: Mic blocked. Check browser settings.";
+                }
+                console.error("Speech Error:", event.error);
+            };
         }
 
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-
-        // Function to trigger on touch/click
-        const startVoice = async (e) => {
-            if (e) e.preventDefault();
-            if (isListening) return;
-
-            // Try to resume AudioContext if browser suspended it
-            if (window.AudioContext) {
-                const ctx = new AudioContext();
-                if (ctx.state === 'suspended') ctx.resume();
-            }
-
-            isListening = true;
-            micBtn.classList.add('active');
-            status.innerText = "STATUS: LISTENING...";
-            status.style.color = "#ff4d4d";
-            display.innerText = "";
-
-            try {
-                recognition.start();
-                if (navigator.vibrate) navigator.vibrate(50);
-            } catch (err) {
-                console.log("Start error:", err);
-            }
-        };
-
-        const stopVoice = (e) => {
-            if (e) e.preventDefault();
-            if (!isListening) return;
-
-            isListening = false;
-            micBtn.classList.remove('active');
-            status.innerText = "STATUS: PROCESSING...";
-            status.style.color = "#ffcc00";
-            recognition.stop();
-        };
-
-        // UI Event Listeners
-        micBtn.addEventListener('mousedown', startVoice);
-        window.addEventListener('mouseup', stopVoice);
-        micBtn.addEventListener('touchstart', startVoice, {passive: false});
-        micBtn.addEventListener('touchend', stopVoice, {passive: false});
-
-        // The key fix for results
-        recognition.onresult = (event) => {
-            let finalStr = '';
-            for (let i = 0; i < event.results.length; i++) {
-                finalStr += event.results[i][0].transcript;
-            }
-            display.innerText = finalStr;
-        };
-
-        recognition.onerror = (event) => {
-            status.innerText = "API ERROR: " + event.error.toUpperCase();
-            console.error(event.error);
-        };
-
-        recognition.onend = () => {
-            const text = display.innerText.trim();
-            if (text && text !== "Press and hold to record...") {
-                saveNote(text);
-            }
+        const startProcess = async (e) => {
+            e.preventDefault();
+            debug.innerText = "";
             
-            if (!isListening) {
-                status.innerText = "STATUS: READY";
-                status.style.color = "#888";
-                display.innerText = "Press and hold to record...";
+            try {
+                // FORCE permission check
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // Stop the stream immediately, we just needed the permission
+                stream.getTracks().forEach(track => track.stop());
+
+                if (recognition) {
+                    micBtn.classList.add('active');
+                    status.innerText = "System: LISTENING...";
+                    display.innerText = "";
+                    recognition.start();
+                }
+            } catch (err) {
+                debug.innerText = "Permission Denied: " + err.message;
+                status.innerText = "System: ERROR";
             }
         };
 
-        function saveNote(text) {
-            savedNotes.push(text);
-            localStorage.setItem('qrally_notes', JSON.stringify(savedNotes));
-            renderNotes();
-        }
+        const stopProcess = (e) => {
+            if (e) e.preventDefault();
+            micBtn.classList.remove('active');
+            if (recognition) {
+                recognition.stop();
+                status.innerText = "System: Ready";
+            }
+        };
 
-        function renderNotes() {
-            historyList.innerHTML = '';
-            [...savedNotes].reverse().forEach((note) => {
-                const div = document.createElement('div');
-                div.className = 'note-item';
-                div.innerHTML = `<span>${note}</span> <button class="copy-btn">COPY</button>`;
-                div.querySelector('.copy-btn').onclick = () => {
-                    navigator.clipboard.writeText(note);
-                    status.innerText = "COPIED!";
-                    setTimeout(() => status.innerText = "STATUS: READY", 1000);
-                };
-                historyList.appendChild(div);
-            });
-        }
-
-        renderNotes();
+        // Listeners
+        micBtn.addEventListener('mousedown', startProcess);
+        window.addEventListener('mouseup', stopProcess);
+        micBtn.addEventListener('touchstart', startProcess);
+        micBtn.addEventListener('touchend', stopProcess);
     </script>
 </body>
 </html>
