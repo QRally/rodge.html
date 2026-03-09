@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QRally Pro - Voice Capture</title>
+    <title>QRally Pro</title>
     <style>
         body { 
             background: #1a1a1a; color: #ffcc00; font-family: sans-serif; 
@@ -15,41 +14,39 @@
         .voice-card { 
             background: #222; border: 2px solid #333; border-radius: 16px; 
             padding: 25px; width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         #transcript-display { 
-            background: #000; color: #fff; min-height: 100px; padding: 15px; 
-            margin: 20px 0; border-radius: 12px; border: 1px solid #444; font-style: italic;
-            overflow-y: auto; text-align: left;
+            background: #000; color: #fff; min-height: 120px; padding: 15px; 
+            margin: 20px 0; border-radius: 12px; border: 1px solid #444; 
+            font-style: italic; overflow-y: auto; text-align: left;
+            font-size: 1.1rem; line-height: 1.4;
         }
         .ptt-btn { 
-            width: 140px; height: 140px; border-radius: 50%; border: 4px solid #333;
-            background: #444; color: white; font-weight: bold; font-size: 1.1rem;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5); transition: all 0.15s ease;
-            cursor: pointer; -webkit-tap-highlight-color: transparent;
-            outline: none;
+            width: 150px; height: 150px; border-radius: 50%; border: 6px solid #333;
+            background: #444; color: white; font-weight: bold; font-size: 1.2rem;
+            transition: all 0.1s ease; cursor: pointer;
+            -webkit-tap-highlight-color: transparent; outline: none;
         }
-        /* Active State when holding */
         .ptt-btn.active { 
-            background: #d40000; border-color: #ff4d4d;
-            transform: scale(0.92); 
-            box-shadow: 0 0 40px #ff4d4d;
+            background: #ff0000; border-color: #ff6666;
+            transform: scale(0.94); box-shadow: 0 0 50px #ff0000;
         }
-        .status-text { font-size: 0.85rem; color: #888; margin-top: 15px; font-weight: bold; }
+        .status-text { font-size: 0.9rem; color: #888; margin-top: 20px; font-weight: bold; letter-spacing: 1px; }
         #history-list { width: 95%; max-width: 420px; margin-top: 20px; }
         .note-item { 
             background: #262626; margin-bottom: 10px; padding: 15px; border-radius: 8px; 
-            border-left: 5px solid #ffcc00; color: #eee; display: flex; justify-content: space-between;
-            align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            border-left: 5px solid #ffcc00; color: #eee; display: flex; 
+            justify-content: space-between; align-items: center;
         }
-        .action-btn { background: #444; color: #ffcc00; border: none; padding: 8px 12px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; }
-        .action-btn:active { background: #555; }
+        .copy-btn { background: #444; color: #ffcc00; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="voice-card">
-        <h2 style="letter-spacing: 2px;">QRALLY PRO</h2>
-        <div id="transcript-display">Hold button to speak...</div>
+        <h1 style="margin: 0 0 10px 0; font-size: 1.8rem;">QRALLY PRO</h1>
+        <div id="transcript-display">Press and hold to record...</div>
         
         <button id="mic-btn" class="ptt-btn">PUSH<br>TO TALK</button>
         
@@ -64,90 +61,86 @@
         const status = document.getElementById('status');
         const historyList = document.getElementById('history-list');
 
-        let isHolding = false;
+        let isListening = false;
         let savedNotes = JSON.parse(localStorage.getItem('qrally_notes')) || [];
 
-        // API Setup
+        // Setup API
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            status.innerText = "STATUS: BROWSER NOT SUPPORTED";
-            status.style.color = "red";
+            status.innerText = "ERROR: BROWSER NOT SUPPORTED";
         }
 
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'en-GB';
+        recognition.lang = 'en-US';
 
-        // Logic: Start Recording
-        const startHold = (e) => {
+        // Function to trigger on touch/click
+        const startVoice = async (e) => {
             if (e) e.preventDefault();
-            if (isHolding) return;
+            if (isListening) return;
 
-            isHolding = true;
+            // Try to resume AudioContext if browser suspended it
+            if (window.AudioContext) {
+                const ctx = new AudioContext();
+                if (ctx.state === 'suspended') ctx.resume();
+            }
+
+            isListening = true;
             micBtn.classList.add('active');
             status.innerText = "STATUS: LISTENING...";
             status.style.color = "#ff4d4d";
             display.innerText = "";
-            
-            if (navigator.vibrate) navigator.vibrate(60);
 
             try {
                 recognition.start();
+                if (navigator.vibrate) navigator.vibrate(50);
             } catch (err) {
-                console.error("Speech error:", err);
+                console.log("Start error:", err);
             }
         };
 
-        // Logic: Stop Recording
-        const stopHold = (e) => {
+        const stopVoice = (e) => {
             if (e) e.preventDefault();
-            if (!isHolding) return;
+            if (!isListening) return;
 
-            isHolding = false;
+            isListening = false;
             micBtn.classList.remove('active');
             status.innerText = "STATUS: PROCESSING...";
             status.style.color = "#ffcc00";
-            
             recognition.stop();
         };
 
-        // Bind events for both Desktop and Mobile
-        micBtn.addEventListener('mousedown', startHold);
-        window.addEventListener('mouseup', stopHold); // Window listener ensures release works even if dragging off button
+        // UI Event Listeners
+        micBtn.addEventListener('mousedown', startVoice);
+        window.addEventListener('mouseup', stopVoice);
+        micBtn.addEventListener('touchstart', startVoice, {passive: false});
+        micBtn.addEventListener('touchend', stopVoice, {passive: false});
 
-        micBtn.addEventListener('touchstart', startHold, {passive: false});
-        micBtn.addEventListener('touchend', stopHold, {passive: false});
-
-        // Speech Events
+        // The key fix for results
         recognition.onresult = (event) => {
-            let currentTranscript = '';
+            let finalStr = '';
             for (let i = 0; i < event.results.length; i++) {
-                currentTranscript += event.results[i][0].transcript;
+                finalStr += event.results[i][0].transcript;
             }
-            display.innerText = currentTranscript;
+            display.innerText = finalStr;
         };
 
         recognition.onerror = (event) => {
-            if (event.error !== 'no-speech') {
-                status.innerText = "ERROR: " + event.error.toUpperCase();
-                stopHold();
-            }
+            status.innerText = "API ERROR: " + event.error.toUpperCase();
+            console.error(event.error);
         };
 
         recognition.onend = () => {
-            const result = display.innerText.trim();
-            if (result !== "" && result !== "Hold button to speak...") {
-                saveNote(result);
+            const text = display.innerText.trim();
+            if (text && text !== "Press and hold to record...") {
+                saveNote(text);
             }
             
-            if (!isHolding) {
+            if (!isListening) {
                 status.innerText = "STATUS: READY";
                 status.style.color = "#888";
-                display.innerText = "Hold button to speak...";
-            } else {
-                // If it ends but user is still holding (timeout), restart
-                try { recognition.start(); } catch(e) {}
+                display.innerText = "Press and hold to record...";
             }
         };
 
@@ -162,23 +155,14 @@
             [...savedNotes].reverse().forEach((note) => {
                 const div = document.createElement('div');
                 div.className = 'note-item';
-                div.innerHTML = `
-                    <span style="flex: 1; margin-right: 10px;">${note}</span>
-                    <button class="action-btn">COPY</button>
-                `;
-                div.querySelector('.action-btn').onclick = () => copyNote(note);
+                div.innerHTML = `<span>${note}</span> <button class="copy-btn">COPY</button>`;
+                div.querySelector('.copy-btn').onclick = () => {
+                    navigator.clipboard.writeText(note);
+                    status.innerText = "COPIED!";
+                    setTimeout(() => status.innerText = "STATUS: READY", 1000);
+                };
                 historyList.appendChild(div);
             });
-        }
-
-        async function copyNote(text) {
-            try {
-                await navigator.clipboard.writeText(text);
-                status.innerText = "STATUS: COPIED!";
-                setTimeout(() => status.innerText = "STATUS: READY", 1500);
-            } catch (err) {
-                console.error('Failed to copy', err);
-            }
         }
 
         renderNotes();
