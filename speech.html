@@ -1,35 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QRally Pro - Final</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>QRally Pro - Master Suite</title>
     <style>
-        body { background: #1a1a1a; color: #ffcc00; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; margin: 0; }
-        .voice-card { background: #222; border: 2px solid #333; border-radius: 20px; padding: 25px; width: 90%; max-width: 400px; text-align: center; }
-        #transcript-display { background: #000; color: #fff; min-height: 100px; padding: 15px; margin: 20px 0; border-radius: 12px; border: 1px solid #444; font-size: 1.1rem; text-align: left; }
-        .ptt-btn { 
-            width: 140px; height: 140px; border-radius: 50%; border: none; background: #444; color: white; font-weight: bold; 
-            cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none; transition: 0.2s;
+        :root { --rally-yellow: #ffcc00; --rally-red: #ff0000; --rally-bg: #1a1a1a; }
+        
+        body { 
+            background: var(--rally-bg); color: var(--rally-yellow); font-family: sans-serif; 
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 20px; min-height: 100vh; margin: 0;
+            user-select: none; -webkit-user-select: none;
         }
-        .ptt-btn.active { background: #ff0000; animation: pulse-ring 1.2s infinite; box-shadow: 0 0 20px #ff0000; }
-        @keyframes pulse-ring { 0% { transform: scale(0.95); } 50% { transform: scale(1.02); } 100% { transform: scale(0.95); } }
-        .status-text { font-size: 0.85rem; color: #888; margin-top: 15px; }
+
+        .voice-card { 
+            background: #222; border: 2px solid #333; border-radius: 20px; 
+            padding: 25px; width: 95%; max-width: 400px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        #stage-name { 
+            width: 100%; background: #000; color: var(--rally-yellow); border: 1px solid #444; 
+            padding: 12px; border-radius: 8px; font-weight: bold; text-align: center;
+            margin-bottom: 15px; box-sizing: border-box; font-size: 1rem;
+        }
+
+        #transcript-display { 
+            background: #000; color: #fff; min-height: 100px; padding: 15px; 
+            margin: 15px 0; border-radius: 12px; border: 1px solid #444; 
+            font-style: italic; font-size: 1.1rem; text-align: left; line-height: 1.4;
+        }
+
+        .ptt-btn { 
+            width: 150px; height: 150px; border-radius: 50%; border: none;
+            background: #444; color: white; font-weight: bold; font-size: 1.2rem;
+            cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none;
+        }
+
+        .ptt-btn.active { 
+            background: var(--rally-red); 
+            animation: pulse-ring 1.2s infinite;
+            box-shadow: 0 0 30px var(--rally-red);
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(0.95); }
+        }
+
+        .status-text { font-size: 0.85rem; color: #888; margin-top: 15px; font-weight: bold; }
+
+        .top-controls { width: 95%; max-width: 420px; display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .button-row { display: flex; gap: 8px; justify-content: center; width: 100%; }
+
         #history-list { width: 95%; max-width: 420px; margin-top: 20px; }
-        .note-item { background: #262626; margin-bottom: 10px; padding: 12px; border-radius: 8px; border-left: 4px solid #ffcc00; color: #eee; display: flex; justify-content: space-between; align-items: center; }
-        .btn-group { display: flex; gap: 5px; }
-        .copy-btn { background: #333; color: #ffcc00; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
-        .del-btn { background: #442222; color: #ff4444; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+        .note-item { 
+            background: #262626; margin-bottom: 12px; padding: 15px; border-radius: 8px; 
+            border-left: 5px solid var(--rally-yellow); color: #eee;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .btn-group { display: flex; gap: 5px; justify-content: flex-end; }
+        button { cursor: pointer; border: none; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        
+        .play-btn { background: #007bff; color: white; padding: 6px 12px; font-size: 0.7rem; }
+        .share-btn { background: #25D366; color: white; padding: 6px 12px; font-size: 0.7rem; }
+        .copy-btn { background: #444; color: var(--rally-yellow); padding: 6px 12px; font-size: 0.7rem; }
+        .del-btn { background: #442222; color: #ff4444; padding: 6px 12px; font-size: 0.7rem; }
+        
+        .read-all-btn { background: #007bff; color: white; padding: 10px 18px; border-radius: 20px; font-size: 0.8rem; }
+        .share-all-btn { background: #25D366; color: white; padding: 10px 18px; border-radius: 20px; font-size: 0.8rem; }
+        .save-btn { background: #6c757d; color: white; padding: 10px 18px; border-radius: 20px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
     <div class="voice-card">
-        <h2>QRALLY PRO</h2>
-        <div id="transcript-display">Hold to speak...</div>
-        <button id="mic-btn" class="ptt-btn">PUSH TO TALK</button>
-        <div class="status-text" id="status">System: Ready</div>
+        <input type="text" id="stage-name" placeholder="STAGE NAME (e.g. SS1 OULTON)" />
+        <div id="transcript-display">Hold button to speak...</div>
+        <button id="mic-btn" class="ptt-btn">PUSH<br>TO TALK</button>
+        <div class="status-text" id="status">SYSTEM: READY</div>
     </div>
+
+    <div class="top-controls">
+        <div class="button-row">
+            <button id="read-btn" onclick="readAllNotes()" class="read-all-btn">READ ALL</button>
+            <button id="sh-all" onclick="shareAllWhatsApp()" class="share-all-btn">SHARE (WA)</button>
+            <button id="sv-btn" onclick="downloadNotes()" class="save-btn">SAVE TXT</button>
+        </div>
+        <button onclick="clearAll()" style="color:#888; background:none; text-decoration:underline; font-size:0.7rem;">CLEAR ALL HISTORY</button>
+    </div>
+
     <div id="history-list"></div>
 
     <script>
@@ -37,85 +101,138 @@
         const display = document.getElementById('transcript-display');
         const status = document.getElementById('status');
         const historyList = document.getElementById('history-list');
+        const stageInput = document.getElementById('stage-name');
 
         let isPressed = false;
         let savedNotes = JSON.parse(localStorage.getItem('qrally_notes')) || [];
 
+        // SPEECH RECOGNITION SETUP
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
-        
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'en-US';
+        recognition.lang = 'en-GB';
 
-        const startUI = (e) => {
+        // SPEECH SYNTHESIS (UK VOICE)
+        const speak = (text) => {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            const ukVoice = voices.find(v => v.lang.includes('GB') || v.lang === 'en-GB');
+            if (ukVoice) utterance.voice = ukVoice;
+            utterance.rate = 1.1;
+            window.speechSynthesis.speak(utterance);
+        };
+
+        // PTT LOGIC
+        const startAction = async (e) => {
             if (e) e.preventDefault();
             if (isPressed) return;
             isPressed = true;
             micBtn.classList.add('active');
-            status.innerText = "System: LISTENING...";
+            status.innerText = "SYSTEM: LISTENING...";
             display.innerText = "";
-            try { recognition.start(); if (navigator.vibrate) navigator.vibrate(40); } catch (err) {}
+            try { recognition.start(); if (navigator.vibrate) navigator.vibrate(50); } catch(err) {}
         };
 
-        const stopUI = (e) => {
+        const stopAction = (e) => {
             if (e) e.preventDefault();
             if (!isPressed) return;
             isPressed = false;
             micBtn.classList.remove('active');
-            status.innerText = "System: Ready";
+            status.innerText = "SYSTEM: READY";
             recognition.stop();
         };
 
-        micBtn.addEventListener('mousedown', startUI);
-        window.addEventListener('mouseup', stopUI);
-        micBtn.addEventListener('touchstart', startUI, {passive: false});
-        micBtn.addEventListener('touchend', stopUI, {passive: false});
+        micBtn.addEventListener('mousedown', startAction);
+        window.addEventListener('mouseup', stopAction);
+        micBtn.addEventListener('touchstart', startAction, {passive: false});
+        micBtn.addEventListener('touchend', stopAction, {passive: false});
 
-        // THE FIX: Only capture the most recent complete transcript
+        // RECOGNITION HANDLER (Fix for doubled words)
         recognition.onresult = (event) => {
-            let final_transcript = '';
-            let interim_transcript = '';
-
+            let finalStr = '';
+            let interimStr = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    final_transcript += event.results[i][0].transcript;
-                } else {
-                    interim_transcript += event.results[i][0].transcript;
-                }
+                if (event.results[i].isFinal) finalStr += event.results[i][0].transcript;
+                else interimStr += event.results[i][0].transcript;
             }
-            // Display final + interim to make it feel real-time without doubling
-            display.innerText = final_transcript + interim_transcript;
-            status.innerText = "System: RECEIVING VOICE...";
+            display.innerText = finalStr + interimStr;
         };
 
         recognition.onend = () => {
-            const final = display.innerText.trim();
-            if (final && final !== "Hold to speak...") {
-                savedNotes.push(final);
+            const result = display.innerText.trim();
+            if (result && result !== "Hold button to speak...") {
+                savedNotes.push(result);
                 localStorage.setItem('qrally_notes', JSON.stringify(savedNotes));
                 render();
             }
-            if (!isPressed) display.innerText = "Hold to speak...";
+            if (!isPressed) display.innerText = "Hold button to speak...";
         };
 
-        window.deleteNote = (index) => {
-            savedNotes.splice(index, 1);
+        // GLOBAL UTILITIES
+        window.deleteNote = (i) => {
+            savedNotes.splice(i, 1);
             localStorage.setItem('qrally_notes', JSON.stringify(savedNotes));
             render();
         };
 
+        window.clearAll = () => {
+            if (confirm("Clear all notes for this stage?")) {
+                savedNotes = [];
+                localStorage.removeItem('qrally_notes');
+                render();
+            }
+        };
+
+        window.shareWhatsApp = (t) => {
+            window.open(`https://wa.me/?text=${encodeURIComponent("QRally Note: " + t)}`, '_blank');
+        };
+
+        window.shareAllWhatsApp = () => {
+            if (!savedNotes.length) return;
+            const stage = stageInput.value.trim() || "STAGE SUMMARY";
+            let msg = `*${stage.toUpperCase()}*\n\n`;
+            savedNotes.forEach((n, i) => msg += `${i+1}. ${n}\n`);
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        };
+
+        window.readAllNotes = () => {
+            if (!savedNotes.length) return;
+            speak(`Summary for ${stageInput.value || 'the current stage'}. ` + savedNotes.join(". "));
+        };
+
+        window.downloadNotes = () => {
+            if (!savedNotes.length) return;
+            const stage = stageInput.value.trim() || "Rally_Notes";
+            let content = `QRALLY PRO - ${stage.toUpperCase()}\n\n`;
+            savedNotes.forEach((n, i) => content += `${i+1}. ${n}\n`);
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `${stage.replace(/\s+/g, '_')}.txt`;
+            a.click();
+        };
+
         function render() {
-            historyList.innerHTML = savedNotes.map((n, i) => `
+            const hasNotes = savedNotes.length > 0;
+            document.querySelector('.top-controls').style.display = hasNotes ? 'flex' : 'none';
+            historyList.innerHTML = savedNotes.map((n, i) => {
+                const s = n.replace(/'/g, "\\'");
+                return `
                 <div class="note-item">
-                    <span>${n}</span>
+                    <div>${n}</div>
                     <div class="btn-group">
-                        <button class="copy-btn" onclick="navigator.clipboard.writeText('${n.replace(/'/g, "\\'")}')">COPY</button>
+                        <button class="play-btn" onclick="speak('${s}')">PLAY</button>
+                        <button class="share-btn" onclick="shareWhatsApp('${s}')">WA</button>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('${s}')">COPY</button>
                         <button class="del-btn" onclick="deleteNote(${i})">DEL</button>
                     </div>
-                </div>
-            `).reverse().join('');
+                </div>`;
+            }).reverse().join('');
         }
+
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
         render();
     </script>
 </body>
