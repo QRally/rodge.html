@@ -31,8 +31,9 @@
         .note-item { 
             background: #262626; margin-bottom: 10px; padding: 12px; border-radius: 8px; 
             border-left: 4px solid #ffcc00; color: #eee; display: flex; justify-content: space-between;
+            align-items: center;
         }
-        .action-btn { background: #333; color: #ffcc00; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; }
+        .action-btn { background: #333; color: #ffcc00; border: none; padding: 6px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer;}
     </style>
 </head>
 <body>
@@ -53,30 +54,37 @@
         const historyList = document.getElementById('history-list');
 
         let isListening = false;
-        let finalOutput = ""; 
+        let finalTranscript = ""; 
         let savedNotes = JSON.parse(localStorage.getItem('qrally_notes')) || [];
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
+        
+        if (!SpeechRecognition) {
+            status.innerText = "System: Browser not supported";
+        }
 
-        // MOBILE FIX: Set continuous to FALSE for faster result processing on Android
-        recognition.continuous = false; 
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true; // Changed to true to keep it alive while button is held
         recognition.interimResults = true;
         recognition.lang = 'en-GB';
 
         const startProcess = (e) => {
-            e.preventDefault();
+            if (e) e.preventDefault();
             if (isListening) return;
             
             if (navigator.vibrate) navigator.vibrate(50);
             
             isListening = true;
-            finalOutput = ""; // Reset for new recording
+            finalTranscript = ""; 
             micBtn.classList.add('active');
             status.innerText = "System: LISTENING...";
-            display.innerText = "...";
+            display.innerText = "Listening...";
             
-            try { recognition.start(); } catch(err) {}
+            try { 
+                recognition.start(); 
+            } catch(err) {
+                console.log("Recognition already started or error:", err);
+            }
         };
 
         const stopProcess = (e) => {
@@ -86,34 +94,45 @@
             isListening = false;
             micBtn.classList.remove('active');
             status.innerText = "System: PROCESSING...";
+            
             recognition.stop();
         };
 
-        // Event Listeners
+        // Event Listeners for PTT (Push To Talk)
+        micBtn.addEventListener('mousedown', startProcess);
+        window.addEventListener('mouseup', stopProcess); // Global mouse up to catch release outside button
+
         micBtn.addEventListener('touchstart', startProcess);
         micBtn.addEventListener('touchend', stopProcess);
-        micBtn.addEventListener('mousedown', startProcess);
-        micBtn.addEventListener('mouseup', stopProcess);
 
         recognition.onresult = (event) => {
-            let interim = '';
+            let interimTranscript = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
-                let text = event.results[i][0].transcript;
+                const transcript = event.results[i][0].transcript;
                 if (event.results[i].isFinal) {
-                    finalOutput = text;
+                    finalTranscript += transcript;
                 } else {
-                    interim += text;
+                    interimTranscript += transcript;
                 }
             }
-            display.innerText = finalOutput || interim || "Listening...";
+            display.innerText = finalTranscript + interimTranscript;
         };
 
         recognition.onend = () => {
-            if (finalOutput.trim() !== "") {
-                saveNote(finalOutput);
-                finalOutput = ""; 
+            // When the recognition stops (either by stop() or silence)
+            const capturedText = display.innerText.trim();
+            if (capturedText !== "" && capturedText !== "Listening..." && capturedText !== "Hold button and speak clearly...") {
+                saveNote(capturedText);
             }
-            status.innerText = "System: Ready";
+            
+            // Clean up UI
+            if (!isListening) {
+                status.innerText = "System: Ready";
+                display.innerText = "Hold button and speak clearly...";
+            } else {
+                // If it ended due to a pause but button is still held, restart it
+                try { recognition.start(); } catch(e) {}
+            }
         };
 
         function saveNote(text) {
@@ -124,17 +143,20 @@
 
         function renderNotes() {
             historyList.innerHTML = '';
-            [...savedNotes].reverse().forEach((note, i) => {
+            [...savedNotes].reverse().forEach((note) => {
                 const div = document.createElement('div');
                 div.className = 'note-item';
-                div.innerHTML = `<span>${note}</span> <button class="action-btn" onclick="copyNote('${note.replace(/'/g, "\\'")}')">COPY</button>`;
+                // Escape single quotes for the onclick function
+                const safeNote = note.replace(/'/g, "\\'");
+                div.innerHTML = `<span>${note}</span> <button class="action-btn" onclick="copyNote('${safeNote}')">COPY</button>`;
                 historyList.appendChild(div);
             });
         }
 
         window.copyNote = (text) => {
-            navigator.clipboard.writeText(text);
-            alert("Copied to clipboard!");
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard!");
+            });
         };
 
         renderNotes();
