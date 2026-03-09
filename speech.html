@@ -7,25 +7,19 @@
     <style>
         body { background: #1a1a1a; color: #ffcc00; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; margin: 0; }
         .voice-card { background: #222; border: 2px solid #333; border-radius: 20px; padding: 25px; width: 90%; max-width: 400px; text-align: center; }
-        #transcript-display { background: #000; color: #fff; min-height: 100px; padding: 15px; margin: 20px 0; border-radius: 12px; border: 1px solid #444; font-size: 1.1rem; }
+        #transcript-display { background: #000; color: #fff; min-height: 100px; padding: 15px; margin: 20px 0; border-radius: 12px; border: 1px solid #444; font-size: 1.1rem; text-align: left; }
         .ptt-btn { 
             width: 140px; height: 140px; border-radius: 50%; border: none; background: #444; color: white; font-weight: bold; 
             cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none; transition: 0.2s;
         }
-        .ptt-btn.active { 
-            background: #ff0000; 
-            animation: pulse-ring 1.2s infinite; 
-            box-shadow: 0 0 20px #ff0000;
-        }
-        @keyframes pulse-ring {
-            0% { transform: scale(0.95); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(0.95); }
-        }
+        .ptt-btn.active { background: #ff0000; animation: pulse-ring 1.2s infinite; box-shadow: 0 0 20px #ff0000; }
+        @keyframes pulse-ring { 0% { transform: scale(0.95); } 50% { transform: scale(1.02); } 100% { transform: scale(0.95); } }
         .status-text { font-size: 0.85rem; color: #888; margin-top: 15px; }
         #history-list { width: 95%; max-width: 420px; margin-top: 20px; }
-        .note-item { background: #262626; margin-bottom: 8px; padding: 12px; border-radius: 8px; border-left: 4px solid #ffcc00; color: #eee; display: flex; justify-content: space-between; align-items: center; }
+        .note-item { background: #262626; margin-bottom: 10px; padding: 12px; border-radius: 8px; border-left: 4px solid #ffcc00; color: #eee; display: flex; justify-content: space-between; align-items: center; }
+        .btn-group { display: flex; gap: 5px; }
         .copy-btn { background: #333; color: #ffcc00; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+        .del-btn { background: #442222; color: #ff4444; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -57,22 +51,16 @@
         const startUI = (e) => {
             if (e) e.preventDefault();
             if (isPressed) return;
-            
             isPressed = true;
             micBtn.classList.add('active');
             status.innerText = "System: LISTENING...";
             display.innerText = "";
-
-            try {
-                recognition.start();
-                if (navigator.vibrate) navigator.vibrate(40);
-            } catch (err) { console.log(err); }
+            try { recognition.start(); if (navigator.vibrate) navigator.vibrate(40); } catch (err) {}
         };
 
         const stopUI = (e) => {
             if (e) e.preventDefault();
             if (!isPressed) return;
-            
             isPressed = false;
             micBtn.classList.remove('active');
             status.innerText = "System: Ready";
@@ -84,12 +72,20 @@
         micBtn.addEventListener('touchstart', startUI, {passive: false});
         micBtn.addEventListener('touchend', stopUI, {passive: false});
 
+        // THE FIX: Only capture the most recent complete transcript
         recognition.onresult = (event) => {
-            let resultText = '';
-            for (let i = 0; i < event.results.length; i++) {
-                resultText += event.results[i][0].transcript;
+            let final_transcript = '';
+            let interim_transcript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    final_transcript += event.results[i][0].transcript;
+                } else {
+                    interim_transcript += event.results[i][0].transcript;
+                }
             }
-            display.innerText = resultText;
+            // Display final + interim to make it feel real-time without doubling
+            display.innerText = final_transcript + interim_transcript;
             status.innerText = "System: RECEIVING VOICE...";
         };
 
@@ -103,10 +99,22 @@
             if (!isPressed) display.innerText = "Hold to speak...";
         };
 
+        window.deleteNote = (index) => {
+            savedNotes.splice(index, 1);
+            localStorage.setItem('qrally_notes', JSON.stringify(savedNotes));
+            render();
+        };
+
         function render() {
-            historyList.innerHTML = savedNotes.map(n => 
-                `<div class="note-item"><span>${n}</span><button class="copy-btn" onclick="navigator.clipboard.writeText('${n.replace(/'/g, "\\'")}')">COPY</button></div>`
-            ).reverse().join('');
+            historyList.innerHTML = savedNotes.map((n, i) => `
+                <div class="note-item">
+                    <span>${n}</span>
+                    <div class="btn-group">
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('${n.replace(/'/g, "\\'")}')">COPY</button>
+                        <button class="del-btn" onclick="deleteNote(${i})">DEL</button>
+                    </div>
+                </div>
+            `).reverse().join('');
         }
         render();
     </script>
