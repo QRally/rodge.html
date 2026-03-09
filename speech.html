@@ -134,6 +134,142 @@
                 try { recognition.start(); } catch(e) {}
             }
         };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QRally Pro - Voice Capture</title>
+    <style>
+        body { 
+            background: #1a1a1a; color: #ffcc00; font-family: sans-serif; 
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 20px; min-height: 100vh; margin: 0;
+            user-select: none; -webkit-user-select: none;
+        }
+        .voice-card { 
+            background: #222; border: 2px solid #333; border-radius: 16px; 
+            padding: 25px; width: 90%; max-width: 400px; text-align: center;
+        }
+        #transcript-display { 
+            background: #000; color: #fff; min-height: 80px; padding: 15px; 
+            margin: 20px 0; border-radius: 12px; border: 1px solid #444; font-style: italic;
+        }
+        .ptt-btn { 
+            width: 120px; height: 120px; border-radius: 50%; border: none;
+            background: #444; color: white; font-weight: bold;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); transition: 0.1s;
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
+        }
+        .ptt-btn.active { background: #b30000; transform: scale(0.95); box-shadow: 0 0 30px #ff4d4d; }
+        .status-text { font-size: 0.8rem; color: #888; margin-top: 15px; }
+        #history-list { width: 95%; max-width: 420px; margin-top: 20px; }
+        .note-item { 
+            background: #262626; margin-bottom: 10px; padding: 12px; border-radius: 8px; 
+            border-left: 4px solid #ffcc00; color: #eee; display: flex; justify-content: space-between;
+            align-items: center;
+        }
+        .action-btn { background: #333; color: #ffcc00; border: none; padding: 6px 10px; border-radius: 4px; font-size: 0.7rem; cursor: pointer;}
+    </style>
+</head>
+<body>
+
+    <div class="voice-card">
+        <h2>QRALLY PRO</h2>
+        <div id="transcript-display">Hold button and speak clearly...</div>
+        <button id="mic-btn" class="ptt-btn">HOLD<br>TO TALK</button>
+        <div class="status-text" id="status">System: Ready</div>
+    </div>
+
+    <div id="history-list"></div>
+
+    <script>
+        const micBtn = document.getElementById('mic-btn');
+        const display = document.getElementById('transcript-display');
+        const status = document.getElementById('status');
+        const historyList = document.getElementById('history-list');
+
+        let isListening = false;
+        let finalTranscript = ""; 
+        let savedNotes = JSON.parse(localStorage.getItem('qrally_notes')) || [];
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        
+        if (!SpeechRecognition) {
+            status.innerText = "System: Browser not supported";
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true; // Changed to true to keep it alive while button is held
+        recognition.interimResults = true;
+        recognition.lang = 'en-GB';
+
+        const startProcess = (e) => {
+            if (e) e.preventDefault();
+            if (isListening) return;
+            
+            if (navigator.vibrate) navigator.vibrate(50);
+            
+            isListening = true;
+            finalTranscript = ""; 
+            micBtn.classList.add('active');
+            status.innerText = "System: LISTENING...";
+            display.innerText = "Listening...";
+            
+            try { 
+                recognition.start(); 
+            } catch(err) {
+                console.log("Recognition already started or error:", err);
+            }
+        };
+
+        const stopProcess = (e) => {
+            if (e) e.preventDefault();
+            if (!isListening) return;
+            
+            isListening = false;
+            micBtn.classList.remove('active');
+            status.innerText = "System: PROCESSING...";
+            
+            recognition.stop();
+        };
+
+        // Event Listeners for PTT (Push To Talk)
+        micBtn.addEventListener('mousedown', startProcess);
+        window.addEventListener('mouseup', stopProcess); // Global mouse up to catch release outside button
+
+        micBtn.addEventListener('touchstart', startProcess);
+        micBtn.addEventListener('touchend', stopProcess);
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            display.innerText = finalTranscript + interimTranscript;
+        };
+
+        recognition.onend = () => {
+            // When the recognition stops (either by stop() or silence)
+            const capturedText = display.innerText.trim();
+            if (capturedText !== "" && capturedText !== "Listening..." && capturedText !== "Hold button and speak clearly...") {
+                saveNote(capturedText);
+            }
+            
+            // Clean up UI
+            if (!isListening) {
+                status.innerText = "System: Ready";
+                display.innerText = "Hold button and speak clearly...";
+            } else {
+                // If it ended due to a pause but button is still held, restart it
+                try { recognition.start(); } catch(e) {}
+            }
+        };
 
         function saveNote(text) {
             savedNotes.push(text);
@@ -161,5 +297,8 @@
 
         renderNotes();
     </script>
+</body>
+</html>
+
 </body>
 </html>
