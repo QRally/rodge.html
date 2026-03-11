@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QRally OTL Master</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>QRally Master</title>
     <style>
         :root {
             --rally-red: #ff3333;
@@ -16,113 +16,110 @@
         body {
             background-color: var(--bg-black);
             color: var(--rally-red);
-            font-family: 'Segoe UI', 'Courier New', monospace;
+            font-family: 'Segoe UI', sans-serif;
             margin: 0; padding: 10px;
             display: flex; flex-direction: column;
-            height: 100vh; box-sizing: border-box;
+            /* Fix for hiding buttons: Use dvh (Dynamic Viewport Height) */
+            height: 100dvh; 
+            box-sizing: border-box;
             overflow: hidden;
         }
 
         .header { 
             display: flex; justify-content: space-between; align-items: baseline; 
-            border-bottom: 2px solid var(--rally-red); padding-bottom: 5px; 
+            border-bottom: 2px solid var(--rally-red); padding-bottom: 4px; flex-shrink: 0;
         }
-        .brand { font-size: 1.1rem; font-weight: 900; letter-spacing: 2px; color: white; }
-        #clock { font-size: 2rem; font-weight: bold; color: var(--rally-red); }
+        .brand { font-size: 1rem; font-weight: 900; letter-spacing: 1px; color: white; }
+        #clock { font-size: 1.8rem; font-weight: bold; color: var(--rally-red); }
 
-        /* Tripmeter Styling */
         .trip-panel {
             background: #1a1a1a;
-            border: 2px solid #333;
-            border-radius: 10px;
-            margin-top: 8px;
-            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            margin-top: 6px;
+            padding: 8px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            flex-shrink: 0;
         }
-        .trip-val { font-size: 3rem; font-weight: 900; color: #fff; text-align: center; line-height: 1; }
-        .trip-sub { font-size: 0.7rem; color: #888; text-align: center; text-transform: uppercase; }
+        .trip-val { font-size: 2.5rem; font-weight: 900; color: #fff; text-align: center; line-height: 1; }
+        .trip-sub { font-size: 0.6rem; color: #888; text-align: center; text-transform: uppercase; }
 
         .panel {
             background: var(--panel-bg);
             border: 1px solid #222;
-            border-radius: 10px;
-            margin-top: 8px;
-            padding: 10px;
-            flex: 1;
+            border-radius: 8px;
+            margin-top: 6px;
+            padding: 8px;
+            flex: 1; /* These panels will now share the middle space */
             display: flex;
             flex-direction: column;
             justify-content: center;
+            min-height: 0;
         }
 
         .row { display: flex; justify-content: space-between; align-items: center; }
-        label { font-size: 0.7rem; color: #666; font-weight: bold; }
+        label { font-size: 0.65rem; color: #666; font-weight: bold; }
         
-        input, textarea {
+        input {
             background: #000; border: 1px solid var(--rally-red);
-            color: #fff; font-family: inherit; border-radius: 4px;
+            color: #fff; font-size: 1.1rem; width: 70px; text-align: center;
         }
-        input { font-size: 1.1rem; width: 75px; text-align: center; }
-        textarea { width: 100%; height: 40px; margin-top: 5px; resize: none; font-size: 0.9rem; padding: 5px; color: var(--rally-orange); }
+        
+        textarea { 
+            width: 100%; height: 35px; background: #000; border: 1px solid #333;
+            color: var(--rally-orange); font-size: 0.9rem; padding: 4px; resize: none;
+        }
 
-        .big-display { font-size: clamp(2.5rem, 15vw, 4rem); text-align: center; font-weight: 900; margin: 2px 0; line-height: 1; }
+        .big-display { font-size: clamp(2.5rem, 14vh, 4.5rem); text-align: center; font-weight: 900; line-height: 1; }
 
-        .approaching { color: var(--rally-orange); animation: pulse 1s infinite; }
         .safe { color: var(--rally-green); text-shadow: 0 0 10px var(--rally-green); }
-        .warning { color: #fff !important; background: var(--rally-red) !important; }
+        .warning { color: #fff !important; background: var(--rally-red) !important; border-radius: 5px; }
 
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        .btn { flex: 1; border: none; padding: 15px; font-size: 1rem; font-weight: 900; border-radius: 8px; cursor: pointer; text-transform: uppercase; }
+        .btn-group { 
+            display: flex; gap: 8px; margin-top: 8px; flex-shrink: 0; 
+            padding-bottom: env(safe-area-inset-bottom); /* iOS support */
+        }
+        .btn { flex: 1; border: none; padding: 14px; font-size: 1.1rem; font-weight: 900; border-radius: 8px; text-transform: uppercase; }
         .reset-btn { background: var(--rally-red); color: black; }
-        .trip-btn { background: #444; color: white; }
+        .trip-btn { background: #333; color: white; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="brand">QRALLY <span style="color:var(--rally-red)">OTL</span></div>
+        <div class="brand">QRALLY MASTER</div>
         <div id="clock">00:00:00</div>
     </div>
 
     <div class="trip-panel">
         <div>
             <div id="trip-total" class="trip-val">0.00</div>
-            <div class="trip-sub">Section Miles</div>
+            <div class="trip-sub">SECTION MILES</div>
         </div>
         <div>
             <div id="speed" class="trip-val" style="color:var(--rally-orange)">0</div>
-            <div class="trip-sub">Current MPH</div>
+            <div class="trip-sub">CURRENT MPH</div>
         </div>
-    </div>
-
-    <div class="panel" id="buffer-panel">
-        <div class="row">
-            <label>TARGET MILES</label>
-            <input type="number" id="miles" step="0.1" value="2.0">
-        </div>
-        <div id="hold-timer" class="big-display">00:00</div>
-        <div style="text-align:center; font-size:0.6rem;">HOLD UNTIL CLEAR</div>
     </div>
 
     <div class="panel">
-        <div class="row">
-            <label>DUE TIME</label>
-            <input type="time" id="due-time">
-        </div>
+        <div class="row"><label>TARGET MILES</label><input type="number" id="miles" step="0.1" value="2.0"></div>
+        <div id="hold-timer" class="big-display">00:00</div>
+    </div>
+
+    <div class="panel">
+        <div class="row"><label>DUE TIME</label><input type="time" id="due-time"></div>
         <div id="lateness-display" class="big-display">00:00</div>
-        <div style="text-align:center; font-size:0.6rem;">OTL TRACKER</div>
     </div>
 
     <div class="panel" style="flex: 0.4;">
-        <textarea id="notes" placeholder="JCT NOTES..."></textarea>
+        <textarea id="notes" placeholder="NEXT JCT..."></textarea>
     </div>
 
     <div class="btn-group">
         <button class="btn trip-btn" onclick="resetTrip()">RESET TRIP</button>
-        <button class="btn reset-btn" onclick="fullReset()">DEPART CONTROL</button>
+        <button class="btn reset-btn" onclick="fullReset()">DEPART</button>
     </div>
 
     <script>
@@ -130,86 +127,52 @@
         let totalDistance = 0;
         let lastCoord = null;
 
-        // GPS Logic for Speed and Distance
         if ("geolocation" in navigator) {
             navigator.geolocation.watchPosition((pos) => {
-                const coords = pos.coords;
-                
-                // Update Speed
-                let mph = coords.speed ? Math.round(coords.speed * 2.23694) : 0;
-                document.getElementById('speed').innerText = mph;
-
-                // Update Distance (Haversine formula approximation)
-                if (lastCoord && coords.accuracy < 20) {
-                    const dist = calculateDistance(lastCoord.lat, lastCoord.lon, coords.latitude, coords.longitude);
-                    totalDistance += dist;
+                const c = pos.coords;
+                document.getElementById('speed').innerText = c.speed ? Math.round(c.speed * 2.23694) : 0;
+                if (lastCoord && c.accuracy < 25) {
+                    const d = calculateDistance(lastCoord.lat, lastCoord.lon, c.latitude, c.longitude);
+                    totalDistance += d;
                     document.getElementById('trip-total').innerText = totalDistance.toFixed(2);
                 }
-                lastCoord = { lat: coords.latitude, lon: coords.longitude };
+                lastCoord = { lat: c.latitude, lon: c.longitude };
             }, null, { enableHighAccuracy: true });
         }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 3958.8; // Earth radius in miles
+            const R = 3958.8;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
         function update() {
             const now = new Date();
             document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
+            const m = parseFloat(document.getElementById('miles').value) || 0;
+            const rem = Math.ceil(((m / 30) * 3600) - ((now - sectionStartTime) / 1000));
+            const hEl = document.getElementById('hold-timer');
+            hEl.innerText = rem > 0 ? format(rem) : "CLEAR";
+            hEl.className = rem > 0 ? "big-display" : "big-display safe";
 
-            const miles = parseFloat(document.getElementById('miles').value) || 0;
-            const minSecs = (miles / 30) * 3600;
-            const elapsed = (now - sectionStartTime) / 1000;
-            const remaining = Math.ceil(minSecs - elapsed);
-
-            const holdEl = document.getElementById('hold-timer');
-            if (remaining > 0) {
-                holdEl.innerText = formatTime(remaining);
-                holdEl.className = "big-display" + (remaining <= 10 ? " approaching" : "");
-            } else {
-                holdEl.innerText = "CLEAR";
-                holdEl.className = "big-display safe";
-            }
-
-            const dueValue = document.getElementById('due-time').value;
-            if (dueValue) {
-                const [h, m] = dueValue.split(':');
-                const dueTime = new Date();
-                dueTime.setHours(h, m, 0);
-                const diff = now - dueTime;
-                const latDisplay = document.getElementById('lateness-display');
-
+            const due = document.getElementById('due-time').value;
+            if (due) {
+                const [h, min] = due.split(':');
+                const dt = new Date(); dt.setHours(h, min, 0);
+                const diff = Math.floor((now - dt) / 1000);
+                const lEl = document.getElementById('lateness-display');
                 if (diff > 0) {
-                    const s = Math.floor(diff / 1000);
-                    latDisplay.innerText = `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
-                    latDisplay.parentElement.classList.toggle('warning', (s/60) >= 30);
-                } else {
-                    latDisplay.innerText = "00:00";
-                    latDisplay.parentElement.classList.remove('warning');
-                }
+                    lEl.innerText = `${Math.floor(diff/60)}:${(diff%60).toString().padStart(2,'0')}`;
+                    lEl.parentElement.classList.toggle('warning', diff >= 1800);
+                } else { lEl.innerText = "00:00"; lEl.parentElement.classList.remove('warning'); }
             }
         }
 
-        function formatTime(s) {
-            return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
-        }
-
+        function format(s) { return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; }
         function resetTrip() { totalDistance = 0; document.getElementById('trip-total').innerText = "0.00"; }
-        
-        function fullReset() {
-            if(confirm("Depart Control?")) {
-                sectionStartTime = new Date();
-                resetTrip();
-                document.getElementById('notes').value = "";
-            }
-        }
-
+        function fullReset() { if(confirm("DEPART?")) { sectionStartTime = new Date(); resetTrip(); document.getElementById('notes').value = ""; } }
         setInterval(update, 1000);
     </script>
 </body>
