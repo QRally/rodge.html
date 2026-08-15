@@ -13,6 +13,7 @@
             --card-bg: #1A1A1A;
             --psi-cold: #00D1FF;
             --psi-hot: #FF8C00;
+            --tread-green: #20b2aa;
         }
 
         body {
@@ -26,49 +27,61 @@
         #capture-area {
             width: 100%; max-width: 450px;
             background-color: var(--pit-black);
-            padding: 15px;
+            padding: 15px; box-sizing: border-box;
         }
 
-        .header { border-bottom: 2px solid var(--safety-yellow); margin-bottom: 20px; padding-bottom: 10px; }
+        .header { border-bottom: 2px solid var(--safety-yellow); margin-bottom: 15px; padding-bottom: 10px; }
         .brand { font-size: 1.8rem; font-weight: 900; text-transform: uppercase; margin: 0; }
-        .title { font-size: 1.1rem; color: var(--pure-white); text-transform: uppercase; margin: 5px 0; }
+        .title { font-size: 1.1rem; color: var(--pure-white); text-transform: uppercase; margin: 2px 0; }
 
         .tyre-card {
             border: 2px solid var(--safety-yellow);
             background-color: var(--card-bg);
             border-radius: 12px;
-            padding: 15px; margin-bottom: 15px;
+            padding: 12px; margin-bottom: 12px;
         }
 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-        .tyre-id { font-size: 1.8rem; font-weight: bold; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .tyre-id { font-size: 1.8rem; font-weight: bold; line-height: 1; }
 
-        .pressure-group { display: flex; gap: 8px; align-items: center; }
-        .pressure-box { text-align: center; }
-        .pressure-box label { display: block; font-size: 0.6rem; font-weight: bold; margin-bottom: 3px; }
+        .compound-select {
+            background: #111; color: var(--safety-yellow);
+            border: 1px solid var(--safety-yellow); border-radius: 4px;
+            padding: 4px 6px; font-weight: bold; font-size: 0.8rem;
+        }
+
+        .data-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #111; padding: 8px; border-radius: 6px; margin-bottom: 10px;
+        }
+
+        .input-box { text-align: center; }
+        .input-box label { display: block; font-size: 0.6rem; font-weight: bold; margin-bottom: 3px; }
         
-        .psi-input {
-            width: 55px; height: 35px; background: #111; color: white;
+        .compact-input {
+            width: 50px; height: 30px; background: #222; color: white;
             border: 1px solid #444; text-align: center; border-radius: 4px;
+            font-weight: bold; font-size: 0.9rem;
         }
-        .psi-input.cold { border-color: var(--psi-cold); }
-        .psi-input.hot { border-color: var(--psi-hot); }
+        .compact-input.cold { border-color: var(--psi-cold); }
+        .compact-input.hot { border-color: var(--psi-hot); }
+        .compact-input.tread { border-color: var(--tread-green); }
 
-        .delta-display { font-size: 0.7rem; color: #aaa; margin-top: 15px; font-weight: bold; }
+        .delta-display { font-size: 0.75rem; color: #aaa; font-weight: bold; }
 
-        .input-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .temp-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .label { font-size: 0.65rem; color: #888; text-transform: uppercase; margin-bottom: 4px; text-align: center; }
 
         .temp-input {
-            width: 100%; height: 50px; background: #2A2A2A; color: white;
+            width: 100%; height: 45px; background: #2A2A2A; color: white;
             border: 1px solid #444; border-radius: 6px; text-align: center;
-            font-size: 1.3rem; font-weight: bold;
+            font-size: 1.2rem; font-weight: bold; box-sizing: border-box;
         }
 
         .timestamp { font-size: 0.7rem; color: #555; margin-top: 10px; text-align: right; }
 
-        .btn-row { display: flex; gap: 10px; margin-top: 20px; width: 100%; max-width: 450px; }
-        .btn { flex: 1; padding: 15px; border-radius: 6px; font-weight: bold; border: none; text-transform: uppercase; }
+        .btn-row { display: flex; gap: 10px; margin-top: 15px; width: 100%; max-width: 450px; }
+        .btn { flex: 1; padding: 15px; border-radius: 6px; font-weight: bold; border: none; text-transform: uppercase; cursor: pointer; }
         .save-btn { background: var(--safety-yellow); color: black; }
         .reset-btn { background: #222; color: #cc0000; border: 1px solid #cc0000; }
     </style>
@@ -78,20 +91,20 @@
     <div id="capture-area">
         <div class="header">
             <div class="brand">RODGE QRally</div>
-            <div class="title">Tyre Pyrometer Log</div>
+            <div class="title">Tyre & Pyrometer Log</div>
         </div>
 
         <div id="log-container"></div>
 
-        <div style="margin-top:15px;">
+        <div style="margin-top:10px;">
             <div class="label" style="text-align:left; color:var(--safety-yellow);">Session Notes</div>
-            <textarea id="notes" style="width:100%; background:#1A1A1A; color:white; border:1px solid #444; padding:10px; border-radius:8px;"></textarea>
+            <textarea id="notes" rows="2" style="width:100%; background:#1A1A1A; color:white; border:1px solid #444; padding:8px; border-radius:8px; box-sizing:border-box;"></textarea>
         </div>
         <div class="timestamp" id="ts-display"></div>
     </div>
 
     <div class="btn-row">
-        <button class="btn save-btn" onclick="saveSnapshot()">Save Image</button>
+        <button class="btn save-btn" id="save-btn" onclick="saveSnapshot()">Save / Share</button>
         <button class="btn reset-btn" onclick="if(confirm('Reset all?')) window.location.reload()">Reset</button>
     </div>
 
@@ -103,19 +116,36 @@
             { id: 'RR', labels: ['Outer', 'Mid', 'Inner'] }
         ];
 
+        const compounds = ['Soft', 'Medium', 'Hard', 'Intermediate', 'Full Wet', 'Mould Slick'];
+
         const container = document.getElementById('log-container');
         tyres.forEach((t, i) => {
             container.innerHTML += `
                 <div class="tyre-card">
                     <div class="card-header">
                         <div class="tyre-id">${t.id}</div>
-                        <div class="pressure-group">
-                            <div class="pressure-box"><label style="color:var(--psi-cold)">COLD</label><input type="number" class="psi-input cold" id="cold-${i}" oninput="calcDelta(${i})"></div>
-                            <div class="pressure-box"><label style="color:var(--psi-hot)">HOT</label><input type="number" class="psi-input hot" id="hot-${i}" oninput="calcDelta(${i})"></div>
-                            <div class="delta-display" id="delta-${i}">Δ 0.0</div>
+                        <select class="compound-select">
+                            ${compounds.map(c => `<option value="${c}">${c}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <div class="data-bar">
+                        <div class="input-box">
+                            <label style="color:var(--psi-cold)">COLD PSI</label>
+                            <input type="number" step="0.5" class="compact-input cold" id="cold-${i}" oninput="calcDelta(${i})">
+                        </div>
+                        <div class="input-box">
+                            <label style="color:var(--psi-hot)">HOT PSI</label>
+                            <input type="number" step="0.5" class="compact-input hot" id="hot-${i}" oninput="calcDelta(${i})">
+                        </div>
+                        <div class="delta-display" id="delta-${i}">Δ 0.0</div>
+                        <div class="input-box">
+                            <label style="color:var(--tread-green)">TREAD (mm)</label>
+                            <input type="number" step="0.5" class="compact-input tread" id="tread-${i}">
                         </div>
                     </div>
-                    <div class="input-group">
+
+                    <div class="temp-group">
                         ${t.labels.map(l => `<div><div class="label">${l}</div><input type="number" class="temp-input" oninput="updateTemp(this)"></div>`).join('')}
                     </div>
                 </div>`;
@@ -134,14 +164,61 @@
             document.getElementById(`delta-${index}`).innerText = `Δ ${delta > 0 ? '+' + delta : delta}`;
         }
 
-        function saveSnapshot() {
+        async function saveSnapshot() {
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.innerText = "Generating...";
             document.getElementById('ts-display').innerText = "Logged: " + new Date().toLocaleString();
-            html2canvas(document.getElementById('capture-area'), {backgroundColor: "#121212"}).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `QRally_${Date.now()}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-            });
+
+            try {
+                const canvas = await html2canvas(document.getElementById('capture-area'), {
+                    backgroundColor: "#121212",
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true
+                });
+
+                canvas.toBlob(async (blob) => {
+                    const fileName = `QRally_Log_${Date.now()}.png`;
+                    const file = new File([blob], fileName, { type: 'image/png' });
+
+                    // Try Native Mobile Web Share API first
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: 'QRally Tyre Log',
+                                text: 'RODGE QRally Tyre & Pyrometer Log'
+                            });
+                            saveBtn.innerText = "Save / Share";
+                            return;
+                        } catch (err) {
+                            if (err.name !== 'AbortError') console.error(err);
+                        }
+                    }
+
+                    // Fallback 1: Standard Link Download
+                    const imgUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = fileName;
+                    link.href = imgUrl;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    // Fallback 2: Open image in new window for sandboxed HTML Viewers
+                    setTimeout(() => {
+                        const newWin = window.open();
+                        if (newWin) {
+                            newWin.document.write(`<body style="margin:0;background:#121212;display:flex;justify-content:center;align-items:center;min-height:100vh;"><img src="${imgUrl}" style="max-width:100%;height:auto;"/></body>`);
+                        }
+                        saveBtn.innerText = "Save / Share";
+                    }, 300);
+
+                }, 'image/png');
+            } catch (e) {
+                alert('Snapshot failed inside viewer: ' + e.message);
+                saveBtn.innerText = "Save / Share";
+            }
         }
     </script>
 </body>
