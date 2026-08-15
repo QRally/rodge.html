@@ -30,9 +30,21 @@
             padding: 15px; box-sizing: border-box;
         }
 
-        .header { border-bottom: 2px solid var(--safety-yellow); margin-bottom: 15px; padding-bottom: 10px; }
+        .header { border-bottom: 2px solid var(--safety-yellow); margin-bottom: 12px; padding-bottom: 8px; }
         .brand { font-size: 1.8rem; font-weight: 900; text-transform: uppercase; margin: 0; }
-        .title { font-size: 1.1rem; color: var(--pure-white); text-transform: uppercase; margin: 2px 0; }
+        .title { font-size: 1.1rem; color: var(--pure-white); text-transform: uppercase; margin: 2px 0 8px 0; }
+
+        .session-meta-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            background: #111; padding: 8px; border-radius: 6px; border: 1px solid #333;
+        }
+        .meta-box { text-align: center; }
+        .meta-box label { display: block; font-size: 0.6rem; font-weight: bold; color: var(--safety-yellow); margin-bottom: 3px; text-transform: uppercase; }
+        .meta-input {
+            width: 100%; height: 32px; background: #222; color: white;
+            border: 1px solid #444; text-align: center; border-radius: 4px;
+            font-weight: bold; font-size: 0.9rem; box-sizing: border-box;
+        }
 
         .tyre-card {
             border: 2px solid var(--safety-yellow);
@@ -80,10 +92,30 @@
 
         .timestamp { font-size: 0.7rem; color: #555; margin-top: 10px; text-align: right; }
 
-        .btn-row { display: flex; gap: 10px; margin-top: 15px; width: 100%; max-width: 450px; }
-        .btn { flex: 1; padding: 15px; border-radius: 6px; font-weight: bold; border: none; text-transform: uppercase; cursor: pointer; }
+        .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; width: 100%; max-width: 450px; }
+        .btn { flex: 1; min-width: 130px; padding: 12px; border-radius: 6px; font-weight: bold; border: none; text-transform: uppercase; cursor: pointer; }
         .save-btn { background: var(--safety-yellow); color: black; }
+        .local-btn { background: #20b2aa; color: black; }
         .reset-btn { background: #222; color: #cc0000; border: 1px solid #cc0000; }
+
+        .history-section {
+            width: 100%; max-width: 450px; margin-top: 25px;
+            border-top: 2px solid var(--safety-yellow); padding-top: 15px; box-sizing: border-box;
+        }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .history-title { font-size: 1.2rem; font-weight: 900; text-transform: uppercase; }
+        .clear-btn { background: transparent; color: #cc0000; border: 1px solid #cc0000; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+
+        .history-card {
+            background: #1A1A1A; border: 1px solid #333; border-radius: 8px;
+            padding: 10px; margin-bottom: 10px; font-size: 0.8rem; color: #fff;
+        }
+        .history-time { font-size: 0.7rem; color: var(--safety-yellow); font-weight: bold; display: flex; justify-content: space-between; }
+        .history-meta { font-size: 0.75rem; color: #ccc; margin-top: 4px; font-weight: bold; }
+        .history-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 8px; }
+        .history-tyre-item { background: #111; padding: 6px; border-radius: 4px; border-left: 3px solid var(--safety-yellow); }
+        .history-notes { margin-top: 8px; font-size: 0.75rem; color: #aaa; font-style: italic; border-top: 1px solid #222; padding-top: 4px; }
+        .del-item { color: #ff4444; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -92,6 +124,16 @@
         <div class="header">
             <div class="brand">RODGE QRally</div>
             <div class="title">Tyre & Pyrometer Log</div>
+            <div class="session-meta-grid">
+                <div class="meta-box">
+                    <label>Stage Dist (mi)</label>
+                    <input type="number" step="0.1" id="stage-dist" class="meta-input" placeholder="0.0">
+                </div>
+                <div class="meta-box">
+                    <label>Ambient (°C)</label>
+                    <input type="number" step="1" id="ambient-temp" class="meta-input" placeholder="15">
+                </div>
+            </div>
         </div>
 
         <div id="log-container"></div>
@@ -104,8 +146,17 @@
     </div>
 
     <div class="btn-row">
+        <button class="btn local-btn" onclick="saveToLocalStorage()">Save To History</button>
         <button class="btn save-btn" id="save-btn" onclick="saveSnapshot()">Save / Share</button>
-        <button class="btn reset-btn" onclick="if(confirm('Reset all?')) window.location.reload()">Reset</button>
+        <button class="btn reset-btn" onclick="if(confirm('Reset current inputs?')) resetForm()">Reset Form</button>
+    </div>
+
+    <div class="history-section">
+        <div class="history-header">
+            <div class="history-title">Saved Sessions</div>
+            <button class="clear-btn" onclick="clearAllHistory()">Clear All</button>
+        </div>
+        <div id="history-container"></div>
     </div>
 
     <script>
@@ -124,7 +175,7 @@
                 <div class="tyre-card">
                     <div class="card-header">
                         <div class="tyre-id">${t.id}</div>
-                        <select class="compound-select">
+                        <select class="compound-select" id="compound-${i}">
                             ${compounds.map(c => `<option value="${c}">${c}</option>`).join('')}
                         </select>
                     </div>
@@ -146,7 +197,7 @@
                     </div>
 
                     <div class="temp-group">
-                        ${t.labels.map(l => `<div><div class="label">${l}</div><input type="number" class="temp-input" oninput="updateTemp(this)"></div>`).join('')}
+                        ${t.labels.map((l, j) => `<div><div class="label">${l}</div><input type="number" class="temp-input" id="temp-${i}-${j}" oninput="updateTemp(this)"></div>`).join('')}
                     </div>
                 </div>`;
         });
@@ -162,6 +213,99 @@
             const hot = parseFloat(document.getElementById(`hot-${index}`).value) || 0;
             const delta = (hot - cold).toFixed(1);
             document.getElementById(`delta-${index}`).innerText = `Δ ${delta > 0 ? '+' + delta : delta}`;
+        }
+
+        function resetForm() {
+            document.getElementById('stage-dist').value = '';
+            document.getElementById('ambient-temp').value = '';
+            tyres.forEach((_, i) => {
+                document.getElementById(`cold-${i}`).value = '';
+                document.getElementById(`hot-${i}`).value = '';
+                document.getElementById(`tread-${i}`).value = '';
+                document.getElementById(`delta-${i}`).innerText = 'Δ 0.0';
+                [0, 1, 2].forEach(j => {
+                    const tempEl = document.getElementById(`temp-${i}-${j}`);
+                    tempEl.value = '';
+                    tempEl.style.backgroundColor = "#2A2A2A";
+                });
+            });
+            document.getElementById('notes').value = '';
+        }
+
+        function saveToLocalStorage() {
+            const timeStr = new Date().toLocaleString();
+            const logData = {
+                id: Date.now(),
+                timestamp: timeStr,
+                stageDist: document.getElementById('stage-dist').value || '-',
+                ambientTemp: document.getElementById('ambient-temp').value || '-',
+                notes: document.getElementById('notes').value,
+                tyresData: tyres.map((t, i) => ({
+                    id: t.id,
+                    compound: document.getElementById(`compound-${i}`).value,
+                    cold: document.getElementById(`cold-${i}`).value || '-',
+                    hot: document.getElementById(`hot-${i}`).value || '-',
+                    tread: document.getElementById(`tread-${i}`).value || '-',
+                    temps: [
+                        document.getElementById(`temp-${i}-0`).value || '-',
+                        document.getElementById(`temp-${i}-1`).value || '-',
+                        document.getElementById(`temp-${i}-2`).value || '-'
+                    ]
+                }))
+            };
+
+            const existingHistory = JSON.parse(localStorage.getItem('qrally_logs') || '[]');
+            existingHistory.unshift(logData);
+            localStorage.setItem('qrally_logs', JSON.stringify(existingHistory));
+
+            renderHistory();
+            alert('Saved to LocalStorage!');
+        }
+
+        function renderHistory() {
+            const historyContainer = document.getElementById('history-container');
+            const history = JSON.parse(localStorage.getItem('qrally_logs') || '[]');
+
+            if (history.length === 0) {
+                historyContainer.innerHTML = '<div style="color:#666; font-size:0.8rem; text-align:center;">No saved logs found on this device.</div>';
+                return;
+            }
+
+            historyContainer.innerHTML = history.map(item => `
+                <div class="history-card">
+                    <div class="history-time">
+                        <span>${item.timestamp}</span>
+                        <span class="del-item" onclick="deleteHistoryItem(${item.id})">✕ Delete</span>
+                    </div>
+                    <div class="history-meta">
+                        Dist: ${item.stageDist} mi | Ambient: ${item.ambientTemp}°C
+                    </div>
+                    <div class="history-grid">
+                        ${item.tyresData.map(t => `
+                            <div class="history-tyre-item">
+                                <strong>${t.id}</strong> (${t.compound})<br>
+                                PSI: ${t.cold} → ${t.hot} | Tread: ${t.tread}mm<br>
+                                Temps: ${t.temps.join('/')}°C
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${item.notes ? `<div class="history-notes">Notes: ${item.notes}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function deleteHistoryItem(id) {
+            let history = JSON.parse(localStorage.getItem('qrally_logs') || '[]');
+            history = history.filter(item => item.id !== id);
+            localStorage.setItem('qrally_logs', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function clearAllHistory() {
+            if (confirm('Delete all history saved on this device?')) {
+                localStorage.removeItem('qrally_logs');
+                renderHistory();
+            }
         }
 
         async function saveSnapshot() {
@@ -181,7 +325,6 @@
                     const fileName = `QRally_Log_${Date.now()}.png`;
                     const file = new File([blob], fileName, { type: 'image/png' });
 
-                    // Try Native Mobile Web Share API first
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         try {
                             await navigator.share({
@@ -196,7 +339,6 @@
                         }
                     }
 
-                    // Fallback 1: Standard Link Download
                     const imgUrl = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.download = fileName;
@@ -205,7 +347,6 @@
                     link.click();
                     document.body.removeChild(link);
 
-                    // Fallback 2: Open image in new window for sandboxed HTML Viewers
                     setTimeout(() => {
                         const newWin = window.open();
                         if (newWin) {
@@ -216,10 +357,12 @@
 
                 }, 'image/png');
             } catch (e) {
-                alert('Snapshot failed inside viewer: ' + e.message);
+                alert('Snapshot failed: ' + e.message);
                 saveBtn.innerText = "Save / Share";
             }
         }
+
+        renderHistory();
     </script>
 </body>
 </html>
